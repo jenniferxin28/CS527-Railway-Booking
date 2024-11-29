@@ -7,42 +7,58 @@ from django.db import connection
 def home(request):
     if not request.session.get('is_logged_in'):
         return redirect('railway:index')
-    context = {}
+    
+    user_type = request.session.get('user_type', 'Unknown')
+    context = {'user_type': user_type}
 
     return render(request, "railway/home.html", context)  
-# view for the index page
+
+# login page view
 def index(request):
-    example = "hello"
-    login_info = None
     context = {}
 
     if request.method == 'POST':
-        
         if 'login' in request.POST:
             username = request.POST.get('username')
             password = request.POST.get('password')
-            # let's test the mySQL database connection
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM loginTest WHERE username = %s AND user_password = %s",
-                        [username, password])
-                login_info = cursor.fetchall()
-            # If you want to pass data into the html files, you include them here in context. 
-            # Context is in JSON so you can add multiple pieces of information
-            # check index.html to see how to display the information
 
+            user_type = None
+            login_info = None
+
+            # employee table
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT level FROM Employee WHERE username = %s AND password = %s",
+                    [username, password]
+                )
+                login_info = cursor.fetchone()
+                if login_info:
+                    user_type = login_info[0]
+            
+            # customer table
+            if not login_info:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT 'customer' FROM Customer WHERE username = %s AND password = %s",
+                        [username, password]
+                    )
+                    login_info = cursor.fetchone()
+                    if login_info:
+                        user_type = 'customer'
+
+            # authy success
             if login_info:
                 request.session['is_logged_in'] = True
+                request.session['user_type'] = user_type
                 return redirect('railway:home')
             else:
-                message = "Invalid credentials"
-    
-            context['message'] = message
-            #return render(request, "railway/index.html", context)
-        
+                context['message'] = "Invalid credentials"
+
         elif 'logout' in request.POST:
             request.session.flush()
             context['message'] = "Successfully logged out."
             
     return render(request, "railway/index.html", context)
+
 
 
