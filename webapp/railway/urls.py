@@ -9,6 +9,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 app_name = "railway"
 urlpatterns = [
     path("", views.index, name="index"),
+    path("register/", views.register, name="register"),
+    path("user/", views.user, name="user"),
     path("home/", views.home, name="home")
 
 ]

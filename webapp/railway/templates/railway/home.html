@@ -9,9 +9,6 @@
         {% include 'railway/components/ui_navbar.html' with selected="" %}
         <p>home page</p>
         <p> {{ user_type }}</p>
-        <form method="post" action="{% url 'railway:index' %}">
-            {% csrf_token %}
-            <button type="submit" name="logout" class="btn btn-danger">Log Out</button>
-        </form>
+        
     </body>
 </html>
