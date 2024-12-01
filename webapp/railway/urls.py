@@ -11,7 +11,9 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("register/", views.register, name="register"),
     path("user/", views.user, name="user"),
-    path("home/", views.home, name="home")
+    path("home/", views.home, name="home"),
+    path("railway_admin/", views.railway_admin, name="railway_admin"),
+    path("rep/", views.rep, name="rep")
 
 ]
 urlpatterns += staticfiles_urlpatterns()

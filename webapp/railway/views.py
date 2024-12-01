@@ -48,6 +48,12 @@ def register(request):
 # user_account view
 def user(request):
     return render(request, "railway/user_account.html", {})
+# admin_account view
+def railway_admin(request):
+    return render(request, "railway/admin_account.html", {})
+# rep_account view
+def rep(request):
+    return render(request, "railway/rep_account.html", {})
 # login page view
 def index(request):
     context = {}
@@ -89,7 +95,12 @@ def index(request):
                 request.session['user_type'] = user_type
                 request.session['first_name'] = first_name
                 request.session['last_name'] = last_name
-                return redirect('railway:home')
+                if user_type == 'admin':
+                    return redirect('railway:railway_admin')
+                elif user_type == 'rep':
+                    return redirect('railway:rep')
+                elif user_type == 'customer':
+                    return redirect('railway:home')
             else:
                 context['message'] = "Invalid credentials"
 
