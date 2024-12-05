@@ -109,11 +109,15 @@ VALUES (1, 'Times Square', 'New York', 'NY'),
 
 INSERT INTO Train (tid, transit_line_name)
 VALUES (1, 'Blue Line'),
-       (2, 'Red Line');
+       (2, 'Red Line'),
+       (3, 'Green Line'),
+       (4, 'Yellow Line');
 
 INSERT INTO TrainSchedule (transit_line_name, tid, origin, dest, departure_time, arrival_time, travel_time, fare)
 VALUES ('Blue Line', 1, 1, 5, '2024-12-16 08:00:00', '2024-12-16 08:45:00', '00:45:00', 2.75),
-       ('Red Line', 2, 2, 6, '2024-12-16 09:00:00', '2024-12-16 09:50:00', '00:50:00', 3.00);
+       ('Red Line', 2, 2, 6, '2024-12-16 09:00:00', '2024-12-16 09:50:00', '00:50:00', 3.00),
+       ('Green Line', 3, 3, 6, '2024-12-16 10:00:00', '2024-12-16 11:10:00', '01:10:00', 3.50),
+	   ('Yellow Line', 4, 4, 1, '2024-12-16 11:30:00', '2024-12-16 12:20:00', '00:50:00', 2.25);
 
 INSERT INTO Stops (stop_id, transit_line_name, sid, stop_order, stop_time_arrival, stop_time_departure)
 VALUES (1, 'Blue Line', 1, 1, '2024-12-16 08:00:00', '2024-12-16 08:01:00'),
@@ -121,7 +125,13 @@ VALUES (1, 'Blue Line', 1, 1, '2024-12-16 08:00:00', '2024-12-16 08:01:00'),
        (3, 'Blue Line', 5, 3, '2024-12-16 08:45:00', '2024-12-16 08:46:00'),
        (4, 'Red Line', 2, 1, '2024-12-16 09:00:00', '2024-12-16 09:01:00'),
        (5, 'Red Line', 4, 2, '2024-12-16 09:30:00', '2024-12-16 09:31:00'),
-       (6, 'Red Line', 6, 3, '2024-12-16 09:50:00', '2024-12-16 09:51:00');
+       (6, 'Red Line', 6, 3, '2024-12-16 09:50:00', '2024-12-16 09:51:00'),
+       (7, 'Green Line', 3, 1, '2024-12-16 10:00:00', '2024-12-16 10:05:00'),
+	   (8, 'Green Line', 5, 2, '2024-12-16 10:40:00', '2024-12-16 10:45:00'),
+	   (9, 'Green Line', 6, 3, '2024-12-16 11:10:00', '2024-12-16 11:15:00'),
+       (10, 'Yellow Line', 4, 1, '2024-12-16 11:30:00', '2024-12-16 11:35:00'),
+       (11, 'Yellow Line', 2, 2, '2024-12-16 12:00:00', '2024-12-16 12:05:00'),
+       (12, 'Yellow Line', 1, 3, '2024-12-16 12:20:00', '2024-12-16 12:25:00');
 
 INSERT INTO Reservation (rid, date, pid, total_fare, tid, dsid, asid, transit_line_name)
 VALUES (1, '2024-12-16', 1, 2.75, 1, 1, 5, 'Blue Line'),

@@ -7,11 +7,76 @@ from django.db import connection
 def home(request):
     if not request.session.get('is_logged_in'):
         return redirect('railway:index')
-    
-    user_type = request.session.get('user_type', 'Unknown')
-    context = {'user_type': user_type}
 
-    return render(request, "railway/home.html", context)  
+    stations = []
+    schedules = []
+    sort = request.GET.get('sort', 'departure_time')
+
+    with connection.cursor() as cursor:
+        # dropdowns
+        cursor.execute("SELECT sid, name FROM Station")
+        stations = [{'sid': row[0], 'name': row[1]} for row in cursor.fetchall()]
+
+    origin = request.GET.get('origin', None)
+    destination = request.GET.get('destination', None)
+    date = request.GET.get('date', None)
+
+    if date:
+        query = """
+            SELECT TS.transit_line_name, TS.departure_time, TS.arrival_time, TS.fare, 
+                   O.name as origin_name, D.name as dest_name
+            FROM TrainSchedule TS
+            JOIN Station O ON TS.origin = O.sid
+            JOIN Station D ON TS.dest = D.sid
+            WHERE DATE(TS.departure_time) = %s
+        """
+        params = [date]
+
+        # allow default options to search for all
+        if origin:
+            query += " AND TS.origin = %s"
+            params.append(origin)
+        if destination:
+            query += " AND TS.dest = %s"
+            params.append(destination)
+
+        # sort
+        query += f" ORDER BY {sort} ASC"
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            schedules = [{
+                'transit_line_name': row[0],
+                'departure_time': row[1],
+                'arrival_time': row[2],
+                'fare': row[3],
+                'origin': {'name': row[4]},
+                'dest': {'name': row[5]},
+                'stops': []
+            } for row in cursor.fetchall()]
+
+            # stops
+            for schedule in schedules:
+                cursor.execute(
+                    """
+                    SELECT S.name, ST.stop_time_arrival, ST.stop_time_departure
+                    FROM Stops ST
+                    JOIN Station S ON ST.sid = S.sid
+                    WHERE ST.transit_line_name = %s
+                    ORDER BY ST.stop_order ASC
+                    """,
+                    [schedule['transit_line_name']]
+                )
+                schedule['stops'] = [{'name': row[0], 'stop_time_arrival': row[1], 'stop_time_departure': row[2]} for row in cursor.fetchall()]
+
+    context = {
+        'stations': stations,
+        'schedules': schedules,
+        'sort': sort
+    }
+    return render(request, "railway/home.html", context)
+
+  
 # register page view
 def register(request):
     context = {}
