@@ -13,7 +13,8 @@ urlpatterns = [
     path("user/", views.user, name="user"),
     path("home/", views.home, name="home"),
     path("railway_admin/", views.railway_admin, name="railway_admin"),
-    path("rep/", views.rep, name="rep")
+    path("rep/", views.rep, name="rep"),
+    path("cart/", views.cart, name="cart")
 
 ]
 urlpatterns += staticfiles_urlpatterns()

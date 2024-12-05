@@ -76,7 +76,9 @@ def home(request):
     }
     return render(request, "railway/home.html", context)
 
-  
+# cart page view
+def cart(request):
+    return render(request, "railway/cart.html", {})
 # register page view
 def register(request):
     context = {}
