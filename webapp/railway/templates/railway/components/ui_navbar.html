@@ -20,12 +20,6 @@
                 </button>
             {% endif %}
 
-            <!-- reservation shopping cart -->
-            <!-- TODO: LINK TO ACTUAL PAGE -->
-            <a class="btn btn-outline-secondary me-2" href="{% url 'railway:cart' %}">
-                <i class="fas fa-shopping-cart"></i>
-            </a>
-
             <!-- Logout -->
             <form method="post" action="{% url 'railway:index' %}">
                 {% csrf_token %}

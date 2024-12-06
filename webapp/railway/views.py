@@ -77,8 +77,79 @@ def home(request):
     return render(request, "railway/home.html", context)
 
 # cart page view
-def cart(request):
-    return render(request, "railway/cart.html", {})
+def cart(request, transit_line_name):
+    if not request.session.get('is_logged_in'):
+        return redirect('railway:index')
+
+    train_details = {}
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT TS.transit_line_name, TS.departure_time, TS.arrival_time, TS.fare, 
+                   O.name as origin_name, D.name as dest_name
+            FROM TrainSchedule TS
+            JOIN Station O ON TS.origin = O.sid
+            JOIN Station D ON TS.dest = D.sid
+            WHERE TS.transit_line_name = %s
+            """,
+            [transit_line_name]
+        )
+        row = cursor.fetchone()
+        if row:
+            train_details = {
+                'transit_line_name': row[0],
+                'departure_time': row[1],
+                'arrival_time': row[2],
+                'fare': row[3],
+                'origin': row[4],
+                'destination': row[5],
+            }
+    # hardcoded discount values
+    if request.method == 'POST':
+        num_children = int(request.POST.get('children', 0))
+        num_adults = int(request.POST.get('adults', 0))
+        num_seniors = int(request.POST.get('seniors', 0))
+        num_disabled = int(request.POST.get('disabled', 0))
+        trip_type = request.POST.get('trip_type', 'one-way')
+
+        base_fare = train_details['fare']
+        total_fare = (
+            num_children * base_fare * 0.5 +
+            num_adults * base_fare +
+            num_seniors * base_fare * 0.8 +
+            num_disabled * base_fare * 0.7
+        )
+        if trip_type == 'round-trip':
+            total_fare *= 2
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO Reservation (date, pid, total_fare, tid, dsid, asid, transit_line_name, children, adults, seniors, disabled)
+                VALUES (CURRENT_DATE, %s, %s, 
+                        (SELECT tid FROM Train WHERE transit_line_name = %s),
+                        (SELECT origin FROM TrainSchedule WHERE transit_line_name = %s),
+                        (SELECT dest FROM TrainSchedule WHERE transit_line_name = %s),
+                        %s, %s, %s, %s, %s)
+                """,
+                [
+                    request.session['user_id'], total_fare, transit_line_name,
+                    transit_line_name, transit_line_name, transit_line_name,
+                    num_children, num_adults, num_seniors, num_disabled
+                ]
+            )
+        return redirect('railway:user')
+
+    return render(request, "railway/cart.html", {'train': train_details})
+
+
+# cancel
+def cancel_reservation(request, rid):
+    if request.method == 'POST':
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM Reservation WHERE rid = %s", [rid])
+        return redirect('railway:user')
+
 # register page view
 def register(request):
     context = {}
@@ -114,7 +185,84 @@ def register(request):
     return render(request, 'railway/register.html', context)
 # user_account view
 def user(request):
-    return render(request, "railway/user_account.html", {})
+    # basic idea: fetch all reservations sorted by date
+    # all reservations from today and beyond are considered current reservations and can be cancelled
+    # the rest are past reservations
+    if not request.session.get('is_logged_in'):
+        return redirect('railway:index')
+
+    current_reservations = []
+    past_reservations = []
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT R.rid, R.date, R.total_fare, T.transit_line_name, S1.name as origin, S2.name as dest, 
+                   TS.departure_time, TS.arrival_time, R.children, R.adults, R.seniors, R.disabled
+            FROM Reservation R
+            JOIN Train T ON R.tid = T.tid
+            JOIN TrainSchedule TS ON R.transit_line_name = TS.transit_line_name
+            JOIN Station S1 ON R.dsid = S1.sid
+            JOIN Station S2 ON R.asid = S2.sid
+            WHERE R.pid = %s AND R.date >= CURRENT_DATE
+            """,
+            [request.session['user_id']]
+        )
+        current_reservations = [
+            {
+                'rid': row[0],
+                'date': row[1],
+                'total_fare': row[2],
+                'transit_line_name': row[3],
+                'origin': row[4],
+                'dest': row[5],
+                'departure_time': row[6],
+                'arrival_time': row[7],
+                'children': row[8],
+                'adults': row[9],
+                'seniors': row[10],
+                'disabled': row[11],
+            }
+            for row in cursor.fetchall()
+        ]
+        cursor.execute(
+            """
+            SELECT R.rid, R.date, R.total_fare, T.transit_line_name, S1.name as origin, S2.name as dest, 
+                   TS.departure_time, TS.arrival_time, R.children, R.adults, R.seniors, R.disabled
+            FROM Reservation R
+            JOIN Train T ON R.tid = T.tid
+            JOIN TrainSchedule TS ON R.transit_line_name = TS.transit_line_name
+            JOIN Station S1 ON R.dsid = S1.sid
+            JOIN Station S2 ON R.asid = S2.sid
+            WHERE R.pid = %s AND R.date < CURRENT_DATE
+            """,
+            [request.session['user_id']]
+        )
+        past_reservations = [
+            {
+                'rid': row[0],
+                'date': row[1],
+                'total_fare': row[2],
+                'transit_line_name': row[3],
+                'origin': row[4],
+                'dest': row[5],
+                'departure_time': row[6],
+                'arrival_time': row[7],
+                'children': row[8],
+                'adults': row[9],
+                'seniors': row[10],
+                'disabled': row[11],
+            }
+            for row in cursor.fetchall()
+        ]
+
+    return render(request, "railway/user_account.html", {
+        'current_reservations': current_reservations,
+        'past_reservations': past_reservations,
+    })
+
+
+
 # admin_account view
 def railway_admin(request):
     return render(request, "railway/admin_account.html", {})
@@ -134,27 +282,28 @@ def index(request):
             login_info = None
             first_name = None
             last_name = None
+            user_id = None  
 
             # employee
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT first_name, last_name, level FROM Employee WHERE username = %s AND password = %s",
+                    "SELECT SSN, first_name, last_name, level FROM Employee WHERE username = %s AND password = %s",
                     [username, password]
                 )
                 login_info = cursor.fetchone()
                 if login_info:
-                    first_name, last_name, user_type = login_info
-            
+                    user_id, first_name, last_name, user_type = login_info
+
             # customer
             if not login_info:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        "SELECT first_name, last_name, 'customer' FROM Customer WHERE username = %s AND password = %s",
+                        "SELECT cid, first_name, last_name, 'customer' FROM Customer WHERE username = %s AND password = %s",
                         [username, password]
                     )
                     login_info = cursor.fetchone()
                     if login_info:
-                        first_name, last_name, user_type = login_info
+                        user_id, first_name, last_name, user_type = login_info
 
             # authy success
             if login_info:
@@ -162,6 +311,9 @@ def index(request):
                 request.session['user_type'] = user_type
                 request.session['first_name'] = first_name
                 request.session['last_name'] = last_name
+                request.session['user_id'] = user_id 
+
+                # redirect
                 if user_type == 'admin':
                     return redirect('railway:railway_admin')
                 elif user_type == 'rep':
@@ -174,8 +326,9 @@ def index(request):
         elif 'logout' in request.POST:
             request.session.flush()
             context['message'] = "Successfully logged out."
-            
+
     return render(request, "railway/index.html", context)
+
 
 
 

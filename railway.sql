@@ -17,18 +17,6 @@ CREATE TABLE Employee (
 INSERT INTO Employee (SSN, last_name, first_name, username, password, level)
 VALUES (1, 'Doe', 'John', 'admin', 'pass', 'admin'),
 (2, 'Doe', 'Jane', 'rep', 'pass', 'rep');
-
-# Discount table
-CREATE TABLE Discounts (
-    discount_id INT AUTO_INCREMENT PRIMARY KEY,
-    discount_type VARCHAR(30) UNIQUE NOT NULL,
-    discount_amount FLOAT NOT NULL
-);
-INSERT INTO Discounts (discount_type, discount_amount)
-VALUES ('children', 50.0),
-       ('adult', 0.0),
-       ('senior', 20.0),
-       ('disabled', 30.0);
 	
 # Customer table
 CREATE TABLE Customer (
@@ -83,7 +71,7 @@ CREATE TABLE Stops (
 );
 
 CREATE TABLE Reservation (
-    rid INT PRIMARY KEY,
+    rid INT PRIMARY KEY AUTO_INCREMENT,
     date DATE,
     pid INT,
     total_fare FLOAT,
@@ -91,6 +79,10 @@ CREATE TABLE Reservation (
     dsid INT,
     asid INT,
     transit_line_name VARCHAR(50),
+    children INT DEFAULT 0,
+    adults INT DEFAULT 0,
+    seniors INT DEFAULT 0,
+    disabled INT DEFAULT 0,
     FOREIGN KEY (pid) REFERENCES Customer(cid),
     FOREIGN KEY (tid) REFERENCES Train(tid),
     FOREIGN KEY (transit_line_name) REFERENCES TrainSchedule(transit_line_name),
@@ -114,25 +106,34 @@ VALUES (1, 'Blue Line'),
        (4, 'Yellow Line');
 
 INSERT INTO TrainSchedule (transit_line_name, tid, origin, dest, departure_time, arrival_time, travel_time, fare)
-VALUES ('Blue Line', 1, 1, 5, '2024-12-16 08:00:00', '2024-12-16 08:45:00', '00:45:00', 2.75),
-       ('Red Line', 2, 2, 6, '2024-12-16 09:00:00', '2024-12-16 09:50:00', '00:50:00', 3.00),
-       ('Green Line', 3, 3, 6, '2024-12-16 10:00:00', '2024-12-16 11:10:00', '01:10:00', 3.50),
-	   ('Yellow Line', 4, 4, 1, '2024-12-16 11:30:00', '2024-12-16 12:20:00', '00:50:00', 2.25);
+VALUES ('Blue Line', 1, 1, 5, '2024-12-24 08:00:00', '2024-12-24 08:45:00', '00:45:00', 2.75),
+       ('Red Line', 2, 2, 6, '2024-12-24 09:00:00', '2024-12-24 09:50:00', '00:50:00', 3.00),
+       ('Green Line', 3, 3, 6, '2024-12-24 10:00:00', '2024-12-24 11:10:00', '01:10:00', 3.50),
+	   ('Yellow Line', 4, 4, 1, '2024-12-24 11:30:00', '2024-12-24 12:20:00', '00:50:00', 2.25);
 
 INSERT INTO Stops (stop_id, transit_line_name, sid, stop_order, stop_time_arrival, stop_time_departure)
-VALUES (1, 'Blue Line', 1, 1, '2024-12-16 08:00:00', '2024-12-16 08:01:00'),
-       (2, 'Blue Line', 3, 2, '2024-12-16 08:20:00', '2024-12-16 08:21:00'),
-       (3, 'Blue Line', 5, 3, '2024-12-16 08:45:00', '2024-12-16 08:46:00'),
-       (4, 'Red Line', 2, 1, '2024-12-16 09:00:00', '2024-12-16 09:01:00'),
-       (5, 'Red Line', 4, 2, '2024-12-16 09:30:00', '2024-12-16 09:31:00'),
-       (6, 'Red Line', 6, 3, '2024-12-16 09:50:00', '2024-12-16 09:51:00'),
-       (7, 'Green Line', 3, 1, '2024-12-16 10:00:00', '2024-12-16 10:05:00'),
-	   (8, 'Green Line', 5, 2, '2024-12-16 10:40:00', '2024-12-16 10:45:00'),
-	   (9, 'Green Line', 6, 3, '2024-12-16 11:10:00', '2024-12-16 11:15:00'),
-       (10, 'Yellow Line', 4, 1, '2024-12-16 11:30:00', '2024-12-16 11:35:00'),
-       (11, 'Yellow Line', 2, 2, '2024-12-16 12:00:00', '2024-12-16 12:05:00'),
-       (12, 'Yellow Line', 1, 3, '2024-12-16 12:20:00', '2024-12-16 12:25:00');
+VALUES (1, 'Blue Line', 1, 1, '2024-12-24 08:00:00', '2024-12-24 08:01:00'),
+       (2, 'Blue Line', 3, 2, '2024-12-24 08:20:00', '2024-12-24 08:21:00'),
+       (3, 'Blue Line', 5, 3, '2024-12-24 08:45:00', '2024-12-24 08:46:00'),
+       (4, 'Red Line', 2, 1, '2024-12-24 09:00:00', '2024-12-24 09:01:00'),
+       (5, 'Red Line', 4, 2, '2024-12-24 09:30:00', '2024-12-24 09:31:00'),
+       (6, 'Red Line', 6, 3, '2024-12-24 09:50:00', '2024-12-24 09:51:00'),
+       (7, 'Green Line', 3, 1, '2024-12-24 10:00:00', '2024-12-24 10:05:00'),
+	   (8, 'Green Line', 5, 2, '2024-12-24 10:40:00', '2024-12-24 10:45:00'),
+	   (9, 'Green Line', 6, 3, '2024-12-24 11:10:00', '2024-12-24 11:15:00'),
+       (10, 'Yellow Line', 4, 1, '2024-12-24 11:30:00', '2024-12-24 11:35:00'),
+       (11, 'Yellow Line', 2, 2, '2024-12-24 12:00:00', '2024-12-24 12:05:00'),
+       (12, 'Yellow Line', 1, 3, '2024-12-24 12:20:00', '2024-12-24 12:25:00');
 
-INSERT INTO Reservation (rid, date, pid, total_fare, tid, dsid, asid, transit_line_name)
-VALUES (1, '2024-12-16', 1, 2.75, 1, 1, 5, 'Blue Line'),
-       (2, '2024-12-16', 2, 3.00, 2, 2, 6, 'Red Line');
+-- Past Train schedule insert
+INSERT INTO Train (tid, transit_line_name)
+VALUES (5, 'Gray Line');
+INSERT INTO TrainSchedule (transit_line_name, tid, origin, dest, departure_time, arrival_time, travel_time, fare)
+VALUES ('Gray Line', 5, 1, 6, '2024-12-01 07:00:00', '2024-12-01 08:30:00', '01:30:00', 4.50);
+INSERT INTO Stops (stop_id, transit_line_name, sid, stop_order, stop_time_arrival, stop_time_departure)
+VALUES (13, 'Gray Line', 1, 1, '2024-12-01 07:00:00', '2024-12-01 07:05:00'),
+       (14, 'Gray Line', 3, 2, '2024-12-01 07:45:00', '2024-12-01 07:50:00'),
+       (15, 'Gray Line', 6, 3, '2024-12-01 08:30:00', '2024-12-01 08:35:00');
+INSERT INTO Reservation (rid, date, pid, total_fare, tid, dsid, asid, transit_line_name, children, adults, seniors, disabled)
+VALUES (3, '2024-12-01', 1, 9.00, 5, 1, 6, 'Gray Line', 0, 1, 0, 0);
+

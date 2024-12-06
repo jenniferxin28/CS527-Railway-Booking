@@ -73,9 +73,12 @@
                                         <strong>Arrival:</strong> {{ schedule.arrival_time|date:"M d, Y, g:i a" }}<br>
                                         <strong>Fare:</strong> ${{ schedule.fare }}
                                     </p>
-                                    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#stops-{{ schedule.transit_line_name|slugify }}" aria-expanded="false" aria-controls="stops-{{ schedule.transit_line_name|slugify }}">
-                                        View Stops
-                                    </button>
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#stops-{{ schedule.transit_line_name|slugify }}" aria-expanded="false" aria-controls="stops-{{ schedule.transit_line_name|slugify }}">
+                                            View Stops
+                                        </button>
+                                        <a href="{% url 'railway:cart' schedule.transit_line_name %}" class="btn btn-success">Reserve</a>
+                                    </div>                                                                       
                                     <div class="collapse mt-2" id="stops-{{ schedule.transit_line_name|slugify }}">
                                         <ul class="list-group">
                                             {% for stop in schedule.stops %}
@@ -93,7 +96,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="col-12 text-center">
-                        <p class="text-muted">No schedules found. There are only trains on 12-16-2024.</p>
+                        <p class="text-muted">No schedules found. There are only trains on 12-24-2024.</p>
                     </div>
                 {% endif %}
             </div>

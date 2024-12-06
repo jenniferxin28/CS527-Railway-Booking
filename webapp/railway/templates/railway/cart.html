@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cart - Railway Booking</title>
+        {% include 'railway/components/header.html' with selected="cart" %}
+    </head>
+    <body>
+        {% include 'railway/components/ui_navbar.html' with selected="cart" %}
+
+        <div class="container mt-4">
+            <h1 class="text-center mb-4">Reservation Details</h1>
+            <div class="card shadow-sm mb-4">
+                <div class="card-body" id="train-details" data-fare="{{ train.fare }}">
+                    <h5 class="card-title">Train: {{ train.transit_line_name }}</h5>
+                    <p class="card-text">
+                        <strong>Origin:</strong> {{ train.origin }}<br>
+                        <strong>Destination:</strong> {{ train.destination }}<br>
+                        <strong>Departure:</strong> {{ train.departure_time|date:"M d, Y, g:i a" }}<br>
+                        <strong>Arrival:</strong> {{ train.arrival_time|date:"M d, Y, g:i a" }}<br>
+                        <strong>Base Fare:</strong> ${{ train.fare }}
+                    </p>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5 class="mb-3">Select Tickets</h5>
+                        <div class="d-flex align-items-center mb-3">
+                            <label for="children" class="form-label w-25">Children (50% Discount):</label>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-outline-secondary rounded-circle me-2" onclick="changeValue('children', -1)">-</button>
+                                <span id="children" class="px-3">0</span>
+                                <button type="button" class="btn btn-outline-secondary rounded-circle ms-2" onclick="changeValue('children', 1)">+</button>
+                                <input type="hidden" name="children" id="children_input" value="0">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <label for="adults" class="form-label w-25">Adults:</label>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-outline-secondary rounded-circle me-2" onclick="changeValue('adults', -1)">-</button>
+                                <span id="adults" class="px-3">0</span>
+                                <button type="button" class="btn btn-outline-secondary rounded-circle ms-2" onclick="changeValue('adults', 1)">+</button>
+                                <input type="hidden" name="adults" id="adults_input" value="0">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <label for="seniors" class="form-label w-25">Seniors (20% Discount):</label>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-outline-secondary rounded-circle me-2" onclick="changeValue('seniors', -1)">-</button>
+                                <span id="seniors" class="px-3">0</span>
+                                <button type="button" class="btn btn-outline-secondary rounded-circle ms-2" onclick="changeValue('seniors', 1)">+</button>
+                                <input type="hidden" name="seniors" id="seniors_input" value="0">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <label for="disabled" class="form-label w-25">Disabled (30% Discount):</label>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-outline-secondary rounded-circle me-2" onclick="changeValue('disabled', -1)">-</button>
+                                <span id="disabled" class="px-3">0</span>
+                                <button type="button" class="btn btn-outline-secondary rounded-circle ms-2" onclick="changeValue('disabled', 1)">+</button>
+                                <input type="hidden" name="disabled" id="disabled_input" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trip Type -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="trip_type" class="form-label">Trip Type</label>
+                        <select class="form-select w-auto" id="trip_type" name="trip_type">
+                            <option value="one-way" selected>One-Way</option>
+                            <option value="round-trip">Round Trip</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dynamic Total Fare -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5>Total Fare: $<span id="total_fare">0.00</span></h5>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Place Reservation</button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            const baseFare = parseFloat(document.getElementById('train-details').dataset.fare);
+            const discountRates = {
+                children: 0.5,
+                adults: 1,
+                seniors: 0.8,
+                disabled: 0.7
+            };
+
+            function changeValue(id, delta) {
+                const display = document.getElementById(id);
+                const input = document.getElementById(id + '_input');
+                let value = parseInt(display.innerText) || 0;
+                value = Math.max(0, Math.min(10, value + delta));
+                display.innerText = value;
+                input.value = value;
+                updateFare();
+            }
+
+            function updateFare() {
+                let total = 0;
+                total += parseInt(document.getElementById('children').innerText) * baseFare * discountRates.children;
+                total += parseInt(document.getElementById('adults').innerText) * baseFare * discountRates.adults;
+                total += parseInt(document.getElementById('seniors').innerText) * baseFare * discountRates.seniors;
+                total += parseInt(document.getElementById('disabled').innerText) * baseFare * discountRates.disabled;
+
+                const tripType = document.getElementById('trip_type').value;
+                if (tripType === 'round-trip') {
+                    total *= 2;
+                }
+
+                document.getElementById('total_fare').innerText = total.toFixed(2);
+            }
+
+            document.getElementById('trip_type').addEventListener('change', updateFare);
+        </script>
+    </body>
+</html>
