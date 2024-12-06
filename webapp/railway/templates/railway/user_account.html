@@ -11,7 +11,7 @@
         <div class="container mt-4">
             <h1 class="text-center mb-4">{{request.session.first_name}} {{request.session.last_name}}'s Reservations</h1>
 
-            <!-- Current Reservations -->
+            <!-- current Reservations -->
             <h2 class="mb-4">Current Reservations</h2>
             <div class="row">
                 {% if current_reservations %}
@@ -54,7 +54,7 @@
                 {% endif %}
             </div>
 
-            <!-- Past Reservations -->
+            <!-- past Reservations -->
             <h2 class="mb-4">Past Reservations</h2>
             <div class="row">
                 {% if past_reservations %}

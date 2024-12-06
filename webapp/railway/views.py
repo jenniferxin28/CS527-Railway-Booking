@@ -23,7 +23,7 @@ def home(request):
 
     if date:
         query = """
-            SELECT TS.transit_line_name, TS.departure_time, TS.arrival_time, TS.fare, 
+            SELECT TS.schedule_id, TS.transit_line_name, TS.departure_time, TS.arrival_time, TS.fare, 
                    O.name as origin_name, D.name as dest_name
             FROM TrainSchedule TS
             JOIN Station O ON TS.origin = O.sid
@@ -46,12 +46,13 @@ def home(request):
         with connection.cursor() as cursor:
             cursor.execute(query, params)
             schedules = [{
-                'transit_line_name': row[0],
-                'departure_time': row[1],
-                'arrival_time': row[2],
-                'fare': row[3],
-                'origin': {'name': row[4]},
-                'dest': {'name': row[5]},
+                'schedule_id': row[0],
+                'transit_line_name': row[1],
+                'departure_time': row[2],
+                'arrival_time': row[3],
+                'fare': row[4],
+                'origin': {'name': row[5]},
+                'dest': {'name': row[6]},
                 'stops': []
             } for row in cursor.fetchall()]
 
@@ -62,10 +63,10 @@ def home(request):
                     SELECT S.name, ST.stop_time_arrival, ST.stop_time_departure
                     FROM Stops ST
                     JOIN Station S ON ST.sid = S.sid
-                    WHERE ST.transit_line_name = %s
+                    WHERE ST.schedule_id = %s
                     ORDER BY ST.stop_order ASC
                     """,
-                    [schedule['transit_line_name']]
+                    [schedule['schedule_id']]
                 )
                 schedule['stops'] = [{'name': row[0], 'stop_time_arrival': row[1], 'stop_time_departure': row[2]} for row in cursor.fetchall()]
 
@@ -77,7 +78,7 @@ def home(request):
     return render(request, "railway/home.html", context)
 
 # cart page view
-def cart(request, transit_line_name):
+def cart(request, schedule_id):
     if not request.session.get('is_logged_in'):
         return redirect('railway:index')
 
@@ -85,25 +86,27 @@ def cart(request, transit_line_name):
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            SELECT TS.transit_line_name, TS.departure_time, TS.arrival_time, TS.fare, 
+            SELECT TS.schedule_id, TS.transit_line_name, TS.departure_time, TS.arrival_time, TS.fare, 
                    O.name as origin_name, D.name as dest_name
             FROM TrainSchedule TS
             JOIN Station O ON TS.origin = O.sid
             JOIN Station D ON TS.dest = D.sid
-            WHERE TS.transit_line_name = %s
+            WHERE TS.schedule_id = %s
             """,
-            [transit_line_name]
+            [schedule_id]
         )
         row = cursor.fetchone()
         if row:
             train_details = {
-                'transit_line_name': row[0],
-                'departure_time': row[1],
-                'arrival_time': row[2],
-                'fare': row[3],
-                'origin': row[4],
-                'destination': row[5],
+                'schedule_id': row[0],
+                'transit_line_name': row[1],
+                'departure_time': row[2],
+                'arrival_time': row[3],
+                'fare': row[4],
+                'origin': row[5],
+                'destination': row[6],
             }
+
     # hardcoded discount values
     if request.method == 'POST':
         num_children = int(request.POST.get('children', 0))
@@ -122,26 +125,25 @@ def cart(request, transit_line_name):
         if trip_type == 'round-trip':
             total_fare *= 2
 
+        total_fare = round(total_fare, 2)
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO Reservation (date, pid, total_fare, tid, dsid, asid, transit_line_name, children, adults, seniors, disabled)
-                VALUES (CURRENT_DATE, %s, %s, 
-                        (SELECT tid FROM Train WHERE transit_line_name = %s),
-                        (SELECT origin FROM TrainSchedule WHERE transit_line_name = %s),
-                        (SELECT dest FROM TrainSchedule WHERE transit_line_name = %s),
-                        %s, %s, %s, %s, %s)
+                INSERT INTO Reservation (date, pid, total_fare, schedule_id, dsid, asid, children, adults, seniors, disabled)
+                VALUES (CURRENT_DATE, %s, %s, %s,
+                        (SELECT origin FROM TrainSchedule WHERE schedule_id = %s),
+                        (SELECT dest FROM TrainSchedule WHERE schedule_id = %s),
+                        %s, %s, %s, %s)
                 """,
                 [
-                    request.session['user_id'], total_fare, transit_line_name,
-                    transit_line_name, transit_line_name, transit_line_name,
+                    request.session['user_id'], total_fare, schedule_id,
+                    schedule_id, schedule_id,
                     num_children, num_adults, num_seniors, num_disabled
                 ]
             )
         return redirect('railway:user')
 
     return render(request, "railway/cart.html", {'train': train_details})
-
 
 # cancel
 def cancel_reservation(request, rid):
@@ -195,13 +197,13 @@ def user(request):
     past_reservations = []
 
     with connection.cursor() as cursor:
+        # Fetch current reservations
         cursor.execute(
             """
-            SELECT R.rid, R.date, R.total_fare, T.transit_line_name, S1.name as origin, S2.name as dest, 
+            SELECT R.rid, R.date, R.total_fare, TS.transit_line_name, S1.name as origin, S2.name as dest, 
                    TS.departure_time, TS.arrival_time, R.children, R.adults, R.seniors, R.disabled
             FROM Reservation R
-            JOIN Train T ON R.tid = T.tid
-            JOIN TrainSchedule TS ON R.transit_line_name = TS.transit_line_name
+            JOIN TrainSchedule TS ON R.schedule_id = TS.schedule_id
             JOIN Station S1 ON R.dsid = S1.sid
             JOIN Station S2 ON R.asid = S2.sid
             WHERE R.pid = %s AND R.date >= CURRENT_DATE
@@ -225,13 +227,14 @@ def user(request):
             }
             for row in cursor.fetchall()
         ]
+
+        # Fetch past reservations
         cursor.execute(
             """
-            SELECT R.rid, R.date, R.total_fare, T.transit_line_name, S1.name as origin, S2.name as dest, 
+            SELECT R.rid, R.date, R.total_fare, TS.transit_line_name, S1.name as origin, S2.name as dest, 
                    TS.departure_time, TS.arrival_time, R.children, R.adults, R.seniors, R.disabled
             FROM Reservation R
-            JOIN Train T ON R.tid = T.tid
-            JOIN TrainSchedule TS ON R.transit_line_name = TS.transit_line_name
+            JOIN TrainSchedule TS ON R.schedule_id = TS.schedule_id
             JOIN Station S1 ON R.dsid = S1.sid
             JOIN Station S2 ON R.asid = S2.sid
             WHERE R.pid = %s AND R.date < CURRENT_DATE

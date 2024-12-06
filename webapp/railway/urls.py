@@ -14,7 +14,7 @@ urlpatterns = [
     path("home/", views.home, name="home"),
     path("railway_admin/", views.railway_admin, name="railway_admin"),
     path("rep/", views.rep, name="rep"),
-    path('cart/<str:transit_line_name>/', views.cart, name='cart'),
+    path('cart/<int:schedule_id>/', views.cart, name='cart'),
     path('user/', views.user, name='user'),
     path('cancel_reservation/<int:rid>/', views.cancel_reservation, name='cancel_reservation'),
 
