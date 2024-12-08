@@ -264,6 +264,57 @@ def user(request):
         'past_reservations': past_reservations,
     })
 
+def faq(request):
+    query = request.GET.get('q', '').strip()
+    faqs = []
+
+    with connection.cursor() as cursor:
+        if query:
+            # Parameterized query to prevent SQL injection
+            cursor.execute("SELECT id, question, answer FROM faqs WHERE question LIKE %s OR answer LIKE %s", [f"%{query}%", f"%{query}%"])
+        else:
+            cursor.execute("SELECT id, question, answer FROM faqs ORDER BY id ASC")
+        
+        rows = cursor.fetchall()
+    
+    # Convert rows (tuples) to dictionaries
+    for row in rows:
+        faqs.append({
+            'id': row[0],
+            'question': row[1],
+            'answer': row[2]
+        })
+
+    return render(request, 'railway/faq.html', {
+        'faqs': faqs,
+        'query': query,
+    })
+
+def ask_question(request):
+    if request.method == 'POST':
+        user_question = request.POST.get('question', '').strip()
+        if user_question:
+            # Insert the new question into the questions table, answer will be NULL by default
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO faqs (question, answer) VALUES (%s, %s)",
+                    [user_question, None]
+                )
+
+            # After insertion, redirect to a success page
+            return redirect('railway:question_submitted')
+        else:
+            # If empty question submitted, re-display form with an error
+            return render(request, 'railway/ask_question.html', {
+                'error': 'Please enter a question.'
+            })
+    else:
+        # GET request: display empty form
+        return render(request, 'railway/ask_question.html')
+
+def question_submitted(request):
+    return render(request, 'railway/question_submitted.html')
+
 
 
 # admin_account view
@@ -272,6 +323,33 @@ def railway_admin(request):
 # rep_account view
 def rep(request):
     return render(request, "railway/rep_account.html", {})
+
+def unanswered_questions(request):
+    # Fetch unanswered questions
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id, question FROM faqs WHERE answer IS NULL ORDER BY id ASC")
+        rows = cursor.fetchall()
+
+    questions = [{'id': row[0], 'question': row[1]} for row in rows]
+    return render(request, 'railway/unanswered_questions.html', {
+        'questions': questions
+    })
+
+def submit_answer(request):
+    if request.method == 'POST':
+        question_id = request.POST.get('question_id', '').strip()
+        answer = request.POST.get('answer', '').strip()
+
+        if question_id and answer:
+            with connection.cursor() as cursor:
+                cursor.execute("UPDATE faqs SET answer = %s WHERE id = %s", [answer, question_id])
+
+        # After updating, redirect back to the unanswered questions page
+        return redirect('railway:unanswered_questions')
+    else:
+        # If accessed via GET (unlikely in normal flow), just redirect to main page
+        return redirect('railway:unanswered_questions')
+
 # login page view
 def index(request):
     context = {}
