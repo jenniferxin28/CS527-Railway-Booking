@@ -4,36 +4,67 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Unanswered Questions</title>
+    {% include 'railway/components/header.html' with selected="home" %}
+
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        .question-item {
-            margin-bottom: 15px;
-        }
-        .question-text {
-            font-weight: bold;
-            margin: 0;
-            display: inline-block;
-            margin-right: 10px;
-        }
+        /* Hide the answer form by default */
         .answer-form {
-            display: none; /* Initially hidden */
-            margin-top: 10px;
-        }
-        .answer-form input[type="text"] {
-            width: 300px;
-            padding: 6px;
-            margin-right: 10px;
-        }
-        .answer-form button {
-            padding: 6px 12px;
+          display: none;
         }
     </style>
+
+</head>
+<body>
+    {% include 'railway/components/ui_navbar.html' with selected="home" %}
+
+    <div class="container my-4">
+        <h1 class="text-center mb-4">Unanswered Questions</h1>
+        
+        {% if questions %}
+          <ul class="list-group">
+            {% for q in questions %}
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="question-text fw-bold">Q{{ q.id }}: {{ q.question }}</span>
+                
+                    <!-- Add Answer Button -->
+                    <button 
+                        type="button" 
+                        class="btn btn-outline-primary btn-sm"
+                        onclick="showAnswerForm('{{ q.id }}')"
+                    >
+                        Add Answer
+                    </button>
+                </div>
+                
+                <!-- Hidden Answer Form -->
+                <form 
+                  id="answer-form-{{ q.id }}" 
+                  class="answer-form mt-3" 
+                  method="POST" 
+                  action="{% url 'railway:submit_answer' %}"
+                >
+                  {% csrf_token %}
+                  <input type="hidden" name="question_id" value="{{ q.id }}">
+                  <div class="mb-3">
+                    <input 
+                      type="text" 
+                      name="answer" 
+                      class="form-control" 
+                      placeholder="Type your answer..."
+                      required
+                    >
+                  </div>
+                  <button type="submit" class="btn btn-success btn-sm">Submit</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-center text-muted">No unanswered questions found.</p>
+        {% endif %}
+    </div>
+
     <script>
         function showAnswerForm(questionId) {
             var form = document.getElementById('answer-form-' + questionId);
@@ -44,26 +75,10 @@
             }
         }
     </script>
-</head>
-<body>
-    <h1>Unanswered Questions</h1>
-    {% if questions %}
-        <ul>
-            {% for q in questions %}
-                <li class="question-item">
-                    <span class="question-text">Q{{ q.id }}: {{ q.question }}</span>
-                    <button type="button" onclick="showAnswerForm('{{ q.id }}')">Add Answer</button>
-                    <form id="answer-form-{{ q.id }}" class="answer-form" method="POST" action="{% url 'railway:submit_answer' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="question_id" value="{{ q.id }}"/>
-                        <input type="text" name="answer" placeholder="Type your answer..."/>
-                        <button type="submit">Submit</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No unanswered questions found.</p>
-    {% endif %}
+
+<div class="text-center mt-4">
+    <a href="{% url 'railway:rep' %}" class="fw-bold text-primary">Back to Home</a>
+</div>
+
 </body>
 </html>
