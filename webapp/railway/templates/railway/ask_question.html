@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Ask a Question</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-container {
+            max-width: 400px;
+        }
+        .form-container input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .form-container button {
+            padding: 8px 16px;
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ask a Question</h1>
+    <div class="form-container">
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            <input type="text" name="question" placeholder="Type your question here..."/>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

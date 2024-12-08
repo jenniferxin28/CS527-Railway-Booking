@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FAQ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .faq-item {
+            margin-bottom: 15px;
+        }
+        .question {
+            font-weight: bold;
+        }
+        .answer {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Frequently Asked Questions</h1>
+    <div class="search-box">
+        <form method="GET">
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search by keyword..."/>
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    {% if faqs %}
+        {% for faq in faqs %}
+            <div class="faq-item">
+                <div class="question">{{ faq.question }}</div>
+                <div class="answer">
+                    {% if faq.answer %}
+                        {{ faq.answer|linebreaks }}
+                    {% else %}
+                        <em>No answer available at this time.</em>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        {% if query %}
+            <p>No FAQs found for your search.</p>
+        {% else %}
+            <p>No FAQs available.</p>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
