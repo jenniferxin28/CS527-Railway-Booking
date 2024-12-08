@@ -4,10 +4,19 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Question Submitted</title>
+    {% include 'railway/components/header.html' with selected="home" %}
 </head>
+
 <body>
-    <h1>Thank You!</h1>
-    <p>Your question has been submitted successfully.</p>
-    <a href="{% url 'railway:home' %}">Back to Home Page</a>
+    {% include 'railway/components/ui_navbar.html' with selected="home" %}
+
+    <div class="container my-5">
+        <div class="text-center">
+          <h1 class="mb-4">Thank You!</h1>
+          <p class="mb-4">Your question has been submitted successfully.</p>
+          <a href="{% url 'railway:home' %}" class="btn btn-primary">Back to Home Page</a>
+        </div>
+    </div>
+
 </body>
 </html>
