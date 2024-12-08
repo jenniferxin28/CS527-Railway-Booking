@@ -4,54 +4,63 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>FAQ</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        .faq-item {
-            margin-bottom: 15px;
-        }
-        .question {
-            font-weight: bold;
-        }
-        .answer {
-            margin-left: 20px;
-            margin-top: 5px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Frequently Asked Questions</h1>
-    <div class="search-box">
-        <form method="GET">
-            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search by keyword..."/>
-            <button type="submit">Search</button>
-        </form>
-    </div>
+    {% include 'railway/components/header.html' with selected="home" %}
 
-    {% if faqs %}
-        {% for faq in faqs %}
-            <div class="faq-item">
-                <div class="question">{{ faq.question }}</div>
-                <div class="answer">
-                    {% if faq.answer %}
-                        {{ faq.answer|linebreaks }}
-                    {% else %}
-                        <em>No answer available at this time.</em>
-                    {% endif %}
-                </div>
+</head>
+<body class="bg-light">
+    {% include 'railway/components/ui_navbar.html' with selected="home" %}
+
+    <!--A search by key word function-->
+    <div class="container my-4">
+        <h1 class="text-center mb-4">Frequently Asked Questions</h1>
+        <div class="search-box mb-4">
+          <form class="row g-3" method="GET">
+            <div class="col-12 col-md-8 mx-auto">
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  name="q" 
+                  class="form-control" 
+                  value="{{ query|default:'' }}" 
+                  placeholder="Search by keyword..."
+                  aria-label="Search by keyword"
+                />
+                <button class="btn btn-primary" type="submit">Search</button>
+              </div>
             </div>
-        {% endfor %}
-    {% else %}
-        {% if query %}
-            <p>No FAQs found for your search.</p>
+          </form>
+        </div>
+    
+        <!--Display all the questions asked by customers-->
+        {% if faqs %}
+          {% for faq in faqs %}
+            <div class="faq-item card shadow-sm">
+              <div class="card-body">
+                <div class="question bg-light fw-bold">{{ faq.question }}</div>
+                <div class="answer text-muted">
+                  {% if faq.answer %}
+                    {{ faq.answer|linebreaks }}
+                  {% else %}
+                    <em>No answer available at this time.</em>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
         {% else %}
-            <p>No FAQs available.</p>
+          {% if query %}
+            <p class="text-center text-danger">No FAQs found for your search.</p>
+          {% else %}
+            <p class="text-center text-secondary">No FAQs available.</p>
+          {% endif %}
         {% endif %}
-    {% endif %}
+      </div>
+
+      <!--A back to home page button-->
+      <div class="text-center mt-4">
+        <a href="{% url 'railway:home' %}" class="fw-bold text-primary">Back to Home</a>
+      </div>
+    </div>
+    
 </body>
 </html>
