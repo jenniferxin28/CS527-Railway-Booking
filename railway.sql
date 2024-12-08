@@ -162,5 +162,19 @@ VALUES
     (1, '2024-12-24', 1, 2.75, 1, 1, 5, 0, 1, 0, 0),
     (2, '2024-12-24', 2, 3.00, 3, 2, 6, 0, 1, 0, 0),
     (3, '2024-12-01', 1, 9.00, 6, 1, 6, 0, 1, 0, 0);
+    
+CREATE TABLE faqs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question VARCHAR(255) NOT NULL,
+    answer TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO faqs (question, answer)
+VALUES 
+('What is the meaning of life?', '42'),
+('Do you offer international shipping?', NULL);
+
 
 
