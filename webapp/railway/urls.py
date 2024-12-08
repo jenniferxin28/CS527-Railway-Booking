@@ -17,6 +17,11 @@ urlpatterns = [
     path('cart/<int:schedule_id>/', views.cart, name='cart'),
     path('user/', views.user, name='user'),
     path('cancel_reservation/<int:rid>/', views.cancel_reservation, name='cancel_reservation'),
+    path("faq/", views.faq, name="faq"),
+    path('ask/', views.ask_question, name='ask_question'),
+    path('submitted/', views.question_submitted, name='question_submitted'),
+    path('unanswered/', views.unanswered_questions, name='unanswered_questions'),
+    path('submit_answer/', views.submit_answer, name='submit_answer'),
 
 ]
 urlpatterns += staticfiles_urlpatterns()
