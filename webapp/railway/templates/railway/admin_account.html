@@ -8,6 +8,138 @@
     <body>
         {% include 'railway/components/ui_navbar.html' with selected="" %}
         <p>Admin page</p>
-        
+
+        <div class="container mt-4">
+
+            <!-- SECTION: Customer Representative Management -->
+            <section class="mb-5">
+                <h2>Manage Customer Representative Information</h2>
+                
+                 <!-- Add Customer -->   
+                 <div class="button-container">
+                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success w-100">Add Customer Representative</button>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <p>Search for a customer representative using the search bar below:</p>
+                <form method="get" action="{% url 'admin:search_customer_rep' %}" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="rep_search" class="form-label">Search Customer Rep</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="rep_search" name="q" placeholder="e.g. Alex Smith">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+
+                <!-- Edit or Delete Customer Information -->
+                {% if search_performed and representative_found %}
+                <div class="button-container">
+                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Edit Info</button>
+                    </div>
+                    <p></p>
+                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-danger w-100">Delete Customer Representative</button>
+                    </div>
+                </div>
+                {% endif %}
+                
+            </section>
+
+            <!-- Sales Reports -->
+            <section class="mb-5">
+                <h2>Sales Reports</h2>
+                <p>Select Month: </p>
+                <form method="get" action="{% url 'admin:sales_report' %}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <input type="month" class="form-control" id="report_month" name="month" required>
+                                <button type="submit" class="btn btn-primary">Get Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- List of Reservations by Transit Line -->
+            <section class="mb-5">
+                <h2>Reservations by Transit Line</h2>
+                <p>Select Transit Line Name: </p>
+                <form method="get" action="{% url 'admin:reservations_by_transit_line' %}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="line_query" name="line" placeholder="e.g. Northeast Line" required>
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- List of Reservations by Customer Name -->
+            <section class="mb-5">
+                <h2>Reservations by Customer Name</h2>
+                <p>Enter Customer Name: </p>
+                <form method="get" action="{% url 'admin:reservations_by_customer_name' %}">
+                    <div class="row">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="customer_name" name="customer" placeholder="e.g. Alex Smith" required>
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Revenue by Transit Line -->
+            <section class="mb-5">
+                <h2>Revenue by Transit Line</h2>
+                <p>Enter Transit Line Name: </p>
+                <form method="get" action="{% url 'admin:revenue_by_transit_line' %}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="rev_line" name="line" placeholder="e.g. Northeast Line">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Revenue by Customer -->
+            <section class="mb-5">
+                <h2>Revenue by Customer</h2>
+                <p>Enter Customer Name: </p>
+                <form method="get" action="{% url 'admin:revenue_by_customer_name' %}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="rev_customer" name="customer" placeholder="e.g. Alex Smith">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Best Customer -->
+            <section class="mb-5">
+                <h2>Best Customer</h2>
+            </section>
+
+            <!-- Most Active Transit Lines -->
+            <section class="mb-5">
+                <h2>Top 5 Most Active Transit Lines</h2>
+            </section>
+
+        </div>
     </body>
 </html>
