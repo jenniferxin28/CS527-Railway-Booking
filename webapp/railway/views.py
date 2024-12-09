@@ -315,14 +315,77 @@ def ask_question(request):
 def question_submitted(request):
     return render(request, 'railway/question_submitted.html')
 
+def schedule_list(request):
+    schedules = schedules.objects.all()
+    return render(request, 'railway/schedule_list.html', {'schedules': schedules})
 
 
 # admin_account view
 def railway_admin(request):
     return render(request, "railway/admin_account.html", {})
-# rep_account view
+
+
 def rep(request):
-    return render(request, "railway/rep_account.html", {})
+    if not request.session.get('is_logged_in') or request.session.get('user_type') != 'rep':
+        return redirect('railway:index')
+
+    schedules = []
+    message = None
+
+    if request.method == 'POST':
+        # Update train schedule
+        if 'update_schedule' in request.POST:
+            schedule_id = request.POST.get('schedule_id')
+            departure_time = request.POST.get('departure_time')
+            arrival_time = request.POST.get('arrival_time')
+            fare = request.POST.get('fare')
+
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE TrainSchedule 
+                    SET  departure_time = %s, arrival_time = %s, fare = %s
+                    WHERE schedule_id = %s
+                    """,
+                    [ departure_time, arrival_time, fare, schedule_id]
+
+                )
+            message = "Schedule updated successfully!"
+
+        # Delete train schedule
+        elif 'delete_schedule' in request.POST:
+            schedule_id = request.POST.get('schedule_id')
+
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM Reservation WHERE schedule_id = %s", [schedule_id])
+                cursor.execute(
+                    "DELETE FROM TrainSchedule WHERE schedule_id = %s",
+                    [schedule_id]
+                )
+            message = "Schedule deleted successfully!"
+
+    # Fetch the latest schedules data
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT schedule_id, transit_line_name, departure_time, arrival_time, fare 
+            FROM TrainSchedule
+        """)
+        schedules = [
+            {
+                'schedule_id': row[0],
+                'transit_line_name': row[1],
+                'departure_time': row[2],
+                'arrival_time': row[3],
+                'fare': row[4],
+            }
+            for row in cursor.fetchall()
+        ]
+
+    return render(request, "railway/rep_account.html", {
+        'schedules': schedules,
+        'message': message,
+    })
+   
 
 def unanswered_questions(request):
     # Fetch unanswered questions

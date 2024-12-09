@@ -1,13 +1,145 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Railway Booking - Home</title>
-        {% include 'railway/components/header.html' with selected="" %}
-    </head>
-    <body>
-        {% include 'railway/components/ui_navbar.html' with selected="" %}
-        <p>Customer Representative page</p>
-        
-    </body>
+<head>
+    <title>Railway Booking - Home</title>
+    {% include 'railway/components/header.html' with selected="" %}
+    <style>
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    
+    #updateDialog {
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 400px;
+        padding: 20px;
+        background: #fff;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+    }
+
+    #updateDialog label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+    }
+
+    #updateDialog input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #updateDialog button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    #updateDialog button[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    #updateDialog button[type="button"] {
+        background-color: #f44336;
+        color: white;
+    }
+</style>
+
+
+
+
+
+</head>
+<body>
+    {% include 'railway/components/ui_navbar.html' with selected="" %}
+
+    <header>
+        <h1>Manage Schedule</h1>
+    </header>
+    <table border="1" cellspacing="0" cellpadding="5">
+        <tbody>
+            {% for schedule in schedules %}
+                <tr>
+                    <td>{{ schedule.schedule_id }}</td>
+                    <td>{{ schedule.transit_line_name }}</td>
+                    <td>{{ schedule.departure_time }}</td>
+                    <td>{{ schedule.arrival_time }}</td>
+                    <td>{{ schedule.fare }}</td>
+                    <td>
+                        <button onclick="openUpdateDialog({{ schedule.schedule_id }})">Update</button>
+                        <button onclick="openDeleteDialog({{ schedule.schedule_id }})" style="color: red;">Delete</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Update Dialog -->
+
+
+    <dialog id="updateDialog">
+        <form method="POST" action="">
+            {% csrf_token %}
+            <input type="hidden" name="update_schedule" value="true">
+            <input type="hidden" name="schedule_id" id="updateScheduleId">
+            
+            <label for="updateDepartureTime">Departure Time:</label>
+            <input type="datetime-local" name="departure_time" id="updateDepartureTime">
+            
+            <label for="updateArrivalTime">Arrival Time:</label>
+            <input type="datetime-local" name="arrival_time" id="updateArrivalTime">
+            
+            <label for="updateFare">Fare:</label>
+            <input type="number" step="0.01" name="fare" id="updateFare">
+            
+            <button type="submit">Confirm Update</button>
+            <button type="button" onclick="closeUpdateDialog()">Cancel</button>
+        </form>
+    </dialog>
+
+    <!-- Delete Dialog -->
+    <dialog id="deleteDialog">
+        <p>Are you sure you want to delete this schedule?</p>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="delete_schedule" value="true">
+            <input type="hidden" name="schedule_id" id="deleteScheduleId">
+            <button type="submit">Confirm Delete</button>
+            <button type="button" onclick="closeDeleteDialog()">Cancel</button>
+        </form>
+    </dialog>
+
+    <script>
+        function openUpdateDialog(scheduleId) {
+            const dialog = document.getElementById('updateDialog');
+            document.getElementById("updateScheduleId").value = scheduleId;
+            dialog.showModal();
+        }
+
+        function closeUpdateDialog() {
+            document.getElementById('updateDialog').close();
+        }
+
+        function openDeleteDialog(scheduleId) {
+            const dialog = document.getElementById('deleteDialog');
+            document.getElementById('deleteScheduleId').value = scheduleId;
+            dialog.showModal();
+        }
+
+        function closeDeleteDialog() {
+            document.getElementById('deleteDialog').close();
+        }
+    </script>
+</body>
 </html>
