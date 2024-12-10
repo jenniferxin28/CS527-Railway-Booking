@@ -482,42 +482,65 @@ def add_customer_rep(request):
     return render(request, "railway/add_customer_rep.html")
 
 def add_customer_rep_form(request):
-    ssn = request.POST.get('SSN')
-    first_name = request.POST.get('first_name')
-    last_name = request.POST.get('last_name')
-    username = request.POST.get('username')
-    password = request.POST.get('password')
+    ssn = request.POST.get('SSN').strip()
+    first_name = request.POST.get('first_name').strip()
+    last_name = request.POST.get('last_name').strip()
+    username = request.POST.get('username').strip()
+    password = request.POST.get('password').strip()
 
     with connection.cursor() as cursor:
         cursor.execute(
-            "INSERT INTO Employee (SSN, last_name, first_name, username, password, level) VALUES (%s, %s, %s, %s, %s, 'rep')",
-            [ssn, last_name, first_name, username, password]
+            "SELECT SSN FROM Employee WHERE SSN=%s AND level='rep'",
+            [ssn]
         )
-    
-    return render(request, "railway/add_customer_rep_form.html")
+        row = cursor.fetchone()
+        
+        if row is None:
+            cursor.execute(
+                "INSERT INTO Employee (SSN, last_name, first_name, username, password, level) VALUES (%s, %s, %s, %s, %s, 'rep')",
+                [ssn, last_name, first_name, username, password]
+            )
+            connection.commit()
+            messages.success(request, f"Customer representative has been successfully added.")
+        else: 
+            messages.error(request, f"Customer already exists.")
+        
+        return render(request, "railway/add_customer_rep_form.html")
 
 # edit customer rep info
 def edit_customer_rep(request):
-    ssn = request.GET.get('SSN')
-    first_name = request.GET.get('first_name')
-    last_name = request.GET.get('last_name')
-    username = request.GET.get('username')
-    password = request.GET.get('password')
+    ssn = request.POST.get('SSN').strip()
+    first_name = request.POST.get('first_name').strip()
+    last_name = request.POST.get('last_name').strip()
+    username = request.POST.get('username').strip()
+    password = request.POST.get('password').strip()
     with connection.cursor() as cursor:
         cursor.execute(
-            "UPDATE Employee SET first_name=%s, last_name=%s, username=%s, password=%s WHERE SSN=%s AND level='rep'",
-            [first_name, last_name, username, password, ssn]
+            "SELECT SSN FROM Employee WHERE SSN=%s AND level='rep'",
+            [ssn]
         )
         row = cursor.fetchone()
 
+        if row:
+            cursor.execute(
+                "UPDATE Employee SET first_name=%s, last_name=%s, username=%s, password=%s WHERE SSN=%s AND level='rep'",
+                [first_name, last_name, username, password, ssn]
+            )
+            connection.commit()
+            messages.success(request, f"Customer Representative Info has been successfully edited.")
+        else:
+            messages.error(request, f"No customer representative found with that SSN.")
+
     return render(request, "railway/edit_customer_rep.html", {})
+
 
 # Delete customer rep
 def delete_customer_rep(request):
-    ssn = request.POST.get('SSN')
+    ssn = request.POST.get('SSN').strip()
 
     with connection.cursor() as cursor:
         cursor.execute("DELETE FROM Employee WHERE SSN=%s AND level='rep'", [ssn])
+        connection.commit()
     return render(request, "railway/delete_customer_rep.html", {})
 
 # sales report 
@@ -570,7 +593,7 @@ def sales_report(request):
 # list reservations by transit line name
 def reservations_by_transit_line(request):
     reservations = []
-    transit_line_name = request.GET.get('transit_line')  
+    transit_line_name = request.GET.get('transit_line_name').strip()
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -622,7 +645,7 @@ def reservations_by_transit_line(request):
 # list reservations by customer name
 def reservations_by_customer(request):
     reservations = []
-    customer_name = request.GET.get('customer_name', '')
+    customer_name = request.GET.get('customer_name').strip()
     first_name, last_name = customer_name.split()
     customer_exists = None
     

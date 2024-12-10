@@ -2,16 +2,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Customer representative information has been edited</title>
+    <title>Edit Customer Representative</title>
 </head>
 <body>
-<div class="container mt-4">
-    <p>
-        Customer representative information has been edited
-    </p>
-    <div class="row">
-        <a href="{% url 'railway:railway_admin' %}" class="btn btn-secondary mt-3">Return</a>
-    </div>
+<div class="container mt-5">
+    <!-- Display success or failure messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <a href="{% url 'railway:railway_admin' %}" class="btn btn-secondary mt-3">Return</a>
 </div>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>

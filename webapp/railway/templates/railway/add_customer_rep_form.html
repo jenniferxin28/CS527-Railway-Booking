@@ -6,9 +6,20 @@
 </head>
 <body>
 <div class="container mt-5">
-    <div class="alert alert-success" role="alert">
-        Successfully added the new customer representative!
-    </div>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == "success" %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% elif message.tags == "error" %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <a href="{% url 'railway:railway_admin' %}" class="btn btn-primary">Return</a>
 </div>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
