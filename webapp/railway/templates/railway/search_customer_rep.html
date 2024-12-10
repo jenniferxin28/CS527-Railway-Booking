@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Search Results for "{{ query }}"</h2>
+    {% if reps %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>SSN</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reps %}
+                    <tr>
+                        <td>{{ r.SSN }}</td>
+                        <td>{{ r.first_name }}</td>
+                        <td>{{ r.last_name }}</td>
+                        <td>{{ r.username }}</td>
+                        <td>{{ r.password }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No representatives found with that name.</p>
+    {% endif %}
+</div>
+</body>
+</html>

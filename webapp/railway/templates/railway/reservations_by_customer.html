@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reservations by Customer</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Reservations by Customer</h2>
+
+    {% if customer_name %}
+        <p>Customer Name: {{ customer_name }}</p>
+    {% endif %}
+
+    {% if reservations %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Reservation ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Departure Time</th>
+                    <th>Arrival Time</th>
+                    <th>Origin Station</th>
+                    <th>Destination Station</th>
+                    <th>Total Fare</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservations %}
+                    <tr>
+                        <td>{{ r.reservation_id }}</td>
+                        <td>{{ r.first_name }}</td>
+                        <td>{{ r.last_name }}</td>
+                        <td>{{ r.departure_time }}</td>
+                        <td>{{ r.arrival_time }}</td>
+                        <td>{{ r.origin_station }}</td>
+                        <td>{{ r.destination_station }}</td>
+                        <td>{{ r.total_fare }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        {% if customer_name %}
+            <p>No reservations found for this customer.</p>
+        {% else %}
+            <p>Please enter a customer name to search.</p>
+        {% endif %}
+    {% endif %}
+</div>
+</body>
+</html>

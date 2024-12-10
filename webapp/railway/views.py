@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.db import connection
+from datetime import datetime, timedelta
 # Create your views here.
 # Remember to write a view for every single page, then link the function in railway/urls.py to display the view
 
@@ -399,6 +400,372 @@ def schedule_list(request):
 def railway_admin(request):
     return render(request, "railway/admin_account.html", {})
 
+# add customer rep
+def add_customer_rep(request):
+    return render(request, "railway/add_customer_rep.html")
+
+def add_customer_rep_form(request):
+    ssn = request.POST.get('ssn')
+    first_name = request.POST.get('first_name')
+    last_name = request.POST.get('last_name')
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO Employee (SSN, last_name, first_name, username, password, level) VALUES (%s, %s, %s, %s, %s, 'rep')",
+            [ssn, last_name, first_name, username, password]
+        )
+    
+    return render(request, "railway/admin_account.html")
+
+# search customer rep information
+def search_customer_rep(request):
+    name = request.GET.get('q', '').strip()
+    reps = []
+    first_name, last_name = name.split()
+
+    if first_name and last_name:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT SSN, first_name, last_name, username, password 
+                FROM Employee
+                WHERE level='rep'
+                  AND first_name = %s
+                  AND last_name = %s
+            """, [first_name, last_name])
+
+            rows = cursor.fetchall()
+            reps = [
+                {
+                    'SSN': row[0],
+                    'first_name': row[1],
+                    'last_name': row[2],
+                    'username': row[3],
+                    'password': row[4]
+                } for row in rows
+            ]
+
+    return render(request, 'railway/search_customer_rep.html', {
+        'reps': reps,
+    })
+
+
+# edit customer rep info
+def edit_customer_rep(request, ssn):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT first_name, last_name, username, password FROM Employee WHERE SSN=%s AND level='rep'", [ssn])
+        row = cursor.fetchone()
+
+    if not row:
+        return HttpResponse("Representative not found", status=404)
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE Employee SET first_name=%s, last_name=%s, username=%s, password=%s WHERE SSN=%s AND level='rep'",
+                [first_name, last_name, username, password, ssn]
+            )
+
+        return redirect('admin:admin_account')
+
+    return render(request, "railway/edit_customer_rep.html", {
+        'first_name': row[0],
+        'last_name': row[1],
+        'username': row[2],
+        'password': row[3],
+        'ssn': ssn
+    })
+
+# Delete customer rep
+def delete_customer_rep(request, ssn):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT first_name, last_name FROM Employee WHERE SSN=%s AND level='rep'", [ssn])
+        row = cursor.fetchone()
+
+    if not row:
+        return HttpResponse("Representative not found", status=404)
+
+    if request.method == 'POST':
+        # Delete record
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM Employee WHERE SSN=%s AND level='rep'", [ssn])
+        return redirect('admin:admin_account')
+
+    return render(request, "railway/delete_customer_rep.html", {
+        'first_name': row[0],
+        'last_name': row[1],
+        'ssn': ssn
+    })
+
+
+# sales report 
+def sales_report(request):
+    sales_report = None
+    selected_month = request.GET.get('month', '').strip()
+    start_date = datetime.strptime(selected_month, "%Y-%m")
+    end_date = None
+    if start_date.month == 12:
+        end_date = start_date.replace(year=start_date.year + 1, month=1, day=1)
+    else:
+        end_date = start_date.replace(month=start_date.month + 1, day=1)
+
+    # Find reservation count and total sales 
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                (SELECT COUNT(*) 
+                    FROM Reservation R 
+                    WHERE R.schedule_id = TS.schedule_id AND R.date >= %s AND R.date < %s) AS reservation_count,
+                (SELECT SUM(R.total_fare)
+                    FROM Reservation R 
+                    WHERE R.schedule_id = TS.schedule_id AND R.date >= %s AND R.date < %s) AS total_sales
+                FROM TrainSchedule TS, Reservation R
+            ORDER BY total_sales DESC
+            """,
+            [start_date, end_date]
+        )
+        sales_report = cursor.fetchall()  
+
+    return render(request, "railway/sales_report.html", {
+        'sales_report': sales_report,
+        'selected_month': selected_month,
+    })
+
+# list reservations by transit line name
+def reservations_by_transit_line(request):
+    reservations = []
+    transit_line_name = request.GET.get('transit_line')  
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT 
+                r.rid AS reservation_id,
+                c.first_name,
+                c.last_name,
+                TS.departure_time,
+                TS.arrival_time,
+                s1.name AS origin_station,
+                s2.name AS destination_station,
+                r.total_fare
+            FROM 
+                Reservation r,
+                Customer c,
+                Station s1,
+                Station s2,
+                TrainSchedule TS
+            WHERE 
+                r.pid = c.cid
+                AND r.dsid = s1.sid
+                AND r.asid = s2.sid
+                AND r.schedule_id = TS.schedule_id
+                AND TS.transit_line_name = %s;
+
+            """,
+            [transit_line_name]
+        )
+        reservations = [
+            {
+                'reservation_id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'departure_time': row[3],
+                'arrival_time': row[4],
+                'origin_station': row[5],
+                'destination_station': row[6],
+                'total_fare': row[7],
+            }
+            for row in cursor.fetchall()
+        ]
+
+    return render(request, "railway/reservations_by_transit_line.html", {
+        'reservations': reservations,
+        'transit_line_name': transit_line_name,
+    })
+
+# list reservations by customer name
+def reservations_by_customer(request):
+    reservations = []
+    customer_name = request.GET.get('customer_name', '').strip()
+    first_name, last_name = customer_name.split()
+    customer_exists = None
+
+    if request.method == 'POST':        
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT 
+                    r.rid AS reservation_id,
+                    c.first_name,
+                    c.last_name,
+                    TS.departure_time,
+                    TS.arrival_time,
+                    s1.name AS origin_station,
+                    s2.name AS destination_station,
+                    r.total_fare
+                FROM 
+                    Reservation r,
+                    Customer c,
+                    Station s1,
+                    Station s2,
+                    TrainSchedule TS
+                WHERE 
+                    r.pid = c.cid
+                    AND r.dsid = s1.sid
+                    AND r.asid = s2.sid
+                    AND r.schedule_id = TS.schedule_id
+                    AND (c.first_name LIKE %s OR c.last_name LIKE %s);
+                """,
+                [first_name, last_name]
+            )
+
+            rows = cursor.fetchall()
+
+        reservations = [
+            {
+                'reservation_id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'departure_time': row[3],
+                'arrival_time': row[4],
+                'origin_station': row[5],
+                'destination_station': row[6],
+                'total_fare': row[7],
+            }
+            for row in rows
+        ]
+
+
+    return render(request, "railway/reservations_by_customer.html", {
+        'reservations': reservations,
+        'customer_name': customer_name,
+    })
+
+# List revenue by transit line name
+def revenue_by_transit_line(request):
+    transit_line_name = request.GET.get('transit_line_name', '')
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT TS.transit_line_name, SUM(r.total_fare) AS total_revenue
+            FROM TrainSchedule TS, Reservation r
+            WHERE r.schedule_id = TS.schedule_id AND TS.transit_line_name = %s;
+        """, 
+        [transit_line_name])
+        rows = cursor.fetchall()
+
+    revenues = [
+        {
+            'transit_line_name': row[0],
+            'total_revenue': row[1]
+        }
+        for row in rows
+    ]
+
+    return render(request, "railway/revenue_by_transit_line.html", {
+        'revenues': revenues
+    })
+
+# list revenue by customer name
+def revenue_by_customer(request):
+    customer_name = request.GET.get('customer_name', '')
+    first_name, last_name = customer_name.split()
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT c.first_name, c.last_name, SUM(r.total_fare) AS total_revenue
+            FROM Reservation r,
+                 Customer c
+            WHERE r.pid = c.cid AND c.first_name = %s AND c.last_name = %s;
+        """, 
+        [first_name, last_name])
+        rows = cursor.fetchall()
+
+    revenues = [
+        {
+            'first_name': row[0],
+            'last_name': row[1],
+            'total_revenue': row[2]
+        }
+        for row in rows
+    ]
+
+    return render(request, "railway/revenue_by_customer.html", {
+        'revenues': revenues
+    })
+
+# list the top 5 best customers by revenue 
+def best_customers(request):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT c.first_name, c.last_name, SUM(r.total_fare) AS total_revenue
+            FROM Reservation r,
+                 Customer c
+            WHERE r.pid = c.cid
+            GROUP BY c.cid
+            ORDER BY total_revenue DESC
+            LIMIT 5;
+        """)
+        rows = cursor.fetchall()
+
+    top_customers = [
+        {
+            'first_name': row[0],
+            'last_name': row[1],
+            'total_revenue': row[2]
+        }
+        for row in rows
+    ]
+
+    return render(request, "railway/best_customers.html", {
+        'top_customers': top_customers
+    })
+
+# list of 5 most active train lines by month
+def active_train_lines(request):
+    selected_month = request.GET.get('month', '')
+    top_lines = []
+
+    if selected_month:
+        year, months = selected_month.split('-')
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT TS.line_name, COUNT(*) AS reservation_count
+                FROM Reservation r,
+                        TrainSchedule TS
+                WHERE r.schedule_id = TS.schedule_id
+                    AND YEAR(r.date) = %s
+                    AND MONTH(r.date) = %s
+                GROUP BY TS.line_name
+                ORDER BY reservation_count DESC
+                LIMIT 5;
+                """,
+                [year, month]
+            )
+            rows = cursor.fetchall()
+
+            top_lines = [
+                {
+                    'line_name': row[0],
+                    'reservation_count': row[1]
+                }
+                for row in rows
+            ]
+
+    return render(request, "railway/active_train_lines.html", {
+        'top_lines': top_lines,
+        'selected_month': selected_month
+    })
 
 def customer_list(request):
     if not request.session.get('is_logged_in') or request.session.get('user_type') != 'rep':
@@ -626,4 +993,3 @@ def index(request):
             context['message'] = "Successfully logged out."
 
     return render(request, "railway/index.html", context)
-

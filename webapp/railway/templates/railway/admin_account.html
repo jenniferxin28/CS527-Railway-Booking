@@ -7,7 +7,6 @@
     </head>
     <body>
         {% include 'railway/components/ui_navbar.html' with selected="" %}
-        <p>Admin page</p>
 
         <div class="container mt-4">
 
@@ -18,23 +17,24 @@
                  <!-- Add Customer -->   
                  <div class="button-container">
                     <div class="col-md-2 mb-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-success w-100">Add Customer Representative</button>
+                        <a href="{% url 'railway:add_customer_rep' %}" class="btn btn-success w-100">Add Customer Representative</a>
                     </div>
                 </div>
 
                 <!-- Search Bar -->
-                <p>Search for a customer representative using the search bar below:</p>
-                <form method="get" action="{% url 'admin:search_customer_rep' %}" class="mb-4">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="rep_search" class="form-label">Search Customer Rep</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="rep_search" name="q" placeholder="e.g. Alex Smith">
-                                <button type="submit" class="btn btn-primary">Search</button>
+                <section class="mb-5">
+                    <h2>Search for Customer Representative</h2>
+                    <form method="get" action="{% url 'railway:search_customer_rep' %}">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group">
+                                    <input type="month" class="form-control" id="month" name="month" required>
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </section>
                 
 
                 <!-- Edit or Delete Customer Information -->
@@ -55,13 +55,17 @@
             <!-- Sales Reports -->
             <section class="mb-5">
                 <h2>Sales Reports</h2>
-                <p>Select Month: </p>
-                <form method="get" action="{% url 'admin:sales_report' %}">
+                <form method="get" action="{% url 'railway:sales_report' %}">
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <div class="input-group">
-                                <input type="month" class="form-control" id="report_month" name="month" required>
-                                <button type="submit" class="btn btn-primary">Get Report</button>
+                                <select class="form-control" id="report_month" name="month" required>
+                                    <option value="" disabled selected>Select a month</option>
+                                    {% for value, display in months %}
+                                        <option value="{{ value }}" {% if value == selected_month %}selected{% endif %}>{{ display }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary">Search</button>
                             </div>
                         </div>
                     </div>
@@ -72,11 +76,11 @@
             <section class="mb-5">
                 <h2>Reservations by Transit Line</h2>
                 <p>Select Transit Line Name: </p>
-                <form method="get" action="{% url 'admin:reservations_by_transit_line' %}">
+                <form method="get" action="{% url 'railway:reservations_by_transit_line' %}">
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <div class="input-group">
-                                <input type="text" class="form-control" id="line_query" name="line" placeholder="e.g. Northeast Line" required>
+                                <input type="text" class="form-control" id="line_query" name="line" placeholder="e.g. Blue Line" required>
                                 <button type="submit" class="btn btn-primary">Search</button>
                             </div>
                         </div>
@@ -88,11 +92,13 @@
             <section class="mb-5">
                 <h2>Reservations by Customer Name</h2>
                 <p>Enter Customer Name: </p>
-                <form method="get" action="{% url 'admin:reservations_by_customer_name' %}">
+                <form method="get" action="{% url 'railway:reservations_by_customer' %}">
                     <div class="row">
-                        <div class="input-group">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
                             <input type="text" class="form-control" id="customer_name" name="customer" placeholder="e.g. Alex Smith" required>
                             <button type="submit" class="btn btn-primary">Search</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -102,11 +108,11 @@
             <section class="mb-5">
                 <h2>Revenue by Transit Line</h2>
                 <p>Enter Transit Line Name: </p>
-                <form method="get" action="{% url 'admin:revenue_by_transit_line' %}">
+                <form method="get" action="{% url 'railway:revenue_by_transit_line' %}">
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <div class="input-group">
-                                <input type="text" class="form-control" id="rev_line" name="line" placeholder="e.g. Northeast Line">
+                                <input type="text" class="form-control" id="transit_line_name" name="transit_line_name" placeholder="e.g. Blue Line">
                                 <button type="submit" class="btn btn-primary">Search</button>
                             </div>
                         </div>
@@ -118,11 +124,11 @@
             <section class="mb-5">
                 <h2>Revenue by Customer</h2>
                 <p>Enter Customer Name: </p>
-                <form method="get" action="{% url 'admin:revenue_by_customer_name' %}">
+                <form method="get" action="{% url 'railway:revenue_by_customer' %}">
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <div class="input-group">
-                                <input type="text" class="form-control" id="rev_customer" name="customer" placeholder="e.g. Alex Smith">
+                                <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="e.g. Alex Smith">
                                 <button type="submit" class="btn btn-primary">Search</button>
                             </div>
                         </div>
@@ -133,11 +139,30 @@
             <!-- Best Customer -->
             <section class="mb-5">
                 <h2>Best Customer</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="input-group">
+                            <a href="{% url 'railway:best_customers' %}" class="btn btn-primary">See Best Customers</a>
+                        </div>
+                    </div>
+
+                </div>
             </section>
 
             <!-- Most Active Transit Lines -->
             <section class="mb-5">
                 <h2>Top 5 Most Active Transit Lines</h2>
+                <p>Select Month: </p>
+                <form method="get" action="{% url 'railway:active_train_lines' %}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <input type="month" class="form-control" id="month" name="month" required>
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </section>
 
         </div>

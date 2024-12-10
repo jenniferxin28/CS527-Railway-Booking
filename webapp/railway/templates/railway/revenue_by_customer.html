@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Revenue by Customer</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Revenue by Customer</h2>
+
+    {% if revenues %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Total Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rev in revenues %}
+                    <tr>
+                        <td>{{ rev.first_name }}</td>
+                        <td>{{ rev.last_name }}</td>
+                        <td>{{ rev.total_revenue }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No revenue data found.</p>
+    {% endif %}
+</div>
+</body>
+</html>

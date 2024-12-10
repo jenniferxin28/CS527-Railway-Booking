@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Report</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Sales Report</h2>
+
+    <!-- If you had a form to select the month, it would go here -->
+    {% if selected_month %}
+        <p>Sales report for: {{ selected_month }}</p>
+
+        {% if sales_report %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Reservation Count</th>
+                        <th>Total Sales</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in sales_report %}
+                        <tr>
+                            <td>{{ row.0 }}</td>
+                            <td>{{ row.1 }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No sales found for this period.</p>
+        {% endif %}
+    {% else %}
+        <p>Please select a month to view the sales report.</p>
+    {% endif %}
+
+</div>
+</body>
+</html>
