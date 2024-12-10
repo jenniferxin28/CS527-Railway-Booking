@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Railway Booking - Home</title>
+    {% include 'railway/components/header.html' with selected="" %}
+    <style>
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    
+    #updateDialog {
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 400px;
+        padding: 20px;
+        background: #fff;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+    }
+
+    #updateDialog label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+    }
+
+    #updateDialog input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #updateDialog button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    #updateDialog button[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    #updateDialog button[type="button"] {
+        background-color: #f44336;
+        color: white;
+    }
+</style>
+
+</head>
+<body>
+    {% include 'railway/components/ui_navbar.html' with selected="" %}
+
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Search for Trains</h1>
+
+       
+
+        <!-- sort button -->
+        <div class="col-12 d-flex justify-content-right">
+            <form method="get" action="">
+                <input type="hidden" name="station_id" value="{{ request.GET.station_id }}">
+                <input type="hidden" name="origin" value="{{ request.GET.origin }}">
+                <input type="hidden" name="destination" value="{{ request.GET.destination }}">
+                <input type="hidden" name="date" value="{{ request.GET.date }}">
+                <label for="sort" class="me-2">Sort By:</label>
+                <select id="sort" name="sort" class="form-select d-inline-block w-auto">
+                    <!-- Set 'selected' if the sort value matches -->
+                    <option value="departure_time" {% if request.GET.sort == "departure_time" %}selected{% endif %}>Departure Time</option>
+                    <option value="arrival_time" {% if request.GET.sort == "arrival_time" %}selected{% endif %}>Arrival Time</option>
+                    <option value="fare" {% if request.GET.sort == "fare" %}selected{% endif %}>Fare</option>
+                </select>
+                <button type="submit" class="btn btn-secondary ms-2">Sort</button>
+            </form>
+        </div>
+        <div class="my-4"></div>
+
+    <!-- train results -->
+
+    <table border="1" cellspacing="0" cellpadding="5">
+        <thead>
+            <tr>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Schedule ID</th>
+                <th>Transit Line</th>
+                <th>Departure Time</th>
+                <th>Arrival Time</th>
+                <th>Fare</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for schedule in schedules %}
+                <tr>
+                    <td>{{ schedule.origin_name }}</td>
+                    <td>{{ schedule.dest_name }}</td>
+                    <td>{{ schedule.schedule_id }}</td>
+                    <td>{{ schedule.transit_line_name }}</td>
+                    <td>{{ schedule.departure_time }}</td>
+                    <td>{{ schedule.arrival_time }}</td>
+                    <td>{{ schedule.fare }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">No schedules found for this station.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

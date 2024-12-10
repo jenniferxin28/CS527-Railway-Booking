@@ -315,9 +315,84 @@ def ask_question(request):
 def question_submitted(request):
     return render(request, 'railway/question_submitted.html')
 
+
+
 def schedule_list(request):
-    schedules = schedules.objects.all()
-    return render(request, 'railway/schedule_list.html', {'schedules': schedules})
+    # Get station_id from the URL parameter
+    origin = request.GET.get('origin', '')
+    destination = request.GET.get('destination', '')
+    date = request.GET.get('date', '')
+
+    station_id = request.GET.get('station_id', None)
+    sort = request.GET.get('sort', 'departure_time')
+    # Fetch schedules from the database
+
+    params = []
+    
+    query = """
+            SELECT TS.schedule_id, TS.transit_line_name, TS.departure_time, 
+                       TS.arrival_time, TS.fare, 
+                       O.name as origin_name, D.name as dest_name
+                FROM TrainSchedule TS
+                JOIN Station O ON TS.origin = O.sid
+                JOIN Station D ON TS.dest = D.sid
+        """
+    if station_id:
+        query += f" WHERE TS.origin = %s"
+        params.append(station_id)
+
+    query += f" ORDER BY {sort} ASC"
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, params)
+        schedules = cursor.fetchall()
+
+
+    # with connection.cursor() as cursor:
+    #     if station_id:
+    #         # If a station is selected, filter the schedules based on the station_id
+    #         cursor.execute("""
+    #             SELECT TS.schedule_id, TS.transit_line_name, TS.departure_time, 
+    #                    TS.arrival_time, TS.fare, 
+    #                    O.name as origin_name, D.name as dest_name
+    #             FROM TrainSchedule TS
+    #             JOIN Station O ON TS.origin = O.sid
+    #             JOIN Station D ON TS.dest = D.sid
+    #             WHERE TS.origin = %s
+    #         """, [station_id])
+
+
+    #     else:
+    #         # If no station is selected, return all schedules
+    #         cursor.execute("""
+    #             SELECT TS.schedule_id, TS.transit_line_name, TS.departure_time, 
+    #                    TS.arrival_time, TS.fare, 
+    #                    O.name as origin_name, D.name as dest_name
+    #             FROM TrainSchedule TS
+    #             JOIN Station O ON TS.origin = O.sid
+    #             JOIN Station D ON TS.dest = D.sid
+    #         """)
+
+    #     schedules = cursor.fetchall()
+
+    # Prepare the schedules data for rendering
+    schedule_data = [
+        {
+            'schedule_id': row[0],
+            'transit_line_name': row[1],
+            'departure_time': row[2],
+            'arrival_time': row[3],
+            'fare': row[4],
+            'origin_name': row[5],
+            'dest_name': row[6],
+        }
+        for row in schedules
+    ]
+
+    return render(request, 'railway/schedule_list.html', {
+        'schedules': schedule_data,
+        'selected_station_id': station_id,
+    })
 
 
 # admin_account view
@@ -331,6 +406,12 @@ def rep(request):
 
     schedules = []
     message = None
+    stations = []
+
+    with connection.cursor() as cursor:
+        # dropdowns
+        cursor.execute("SELECT sid, name FROM Station")
+        stations = [{'sid': row[0], 'name': row[1]} for row in cursor.fetchall()]
 
     if request.method == 'POST':
         # Update train schedule
@@ -381,8 +462,16 @@ def rep(request):
             for row in cursor.fetchall()
         ]
 
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) FROM TrainSchedule
+        """)
+        schedule_count = cursor.fetchone()[0]  # Extract the count
+
     return render(request, "railway/rep_account.html", {
         'schedules': schedules,
+        'schedule_count': schedule_count,  
+        'stations': stations,
         'message': message,
     })
    

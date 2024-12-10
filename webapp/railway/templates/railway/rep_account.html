@@ -56,13 +56,24 @@
     }
 </style>
 
-
-
-
-
 </head>
 <body>
     {% include 'railway/components/ui_navbar.html' with selected="" %}
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100" style="cursor: pointer;" onclick="window.location.href='{% url 'railway:schedule_list' %}'">
+            <div class="card-body">
+                <p class="card-text">
+                    <strong>Total Schedules:</strong> {{ schedule_count }}
+                </p>
+                <div class="d-flex justify-content-between mt-2">
+                    <button class="btn btn-primary" type="button">
+                        View Schedule list
+                    </button>
+                </div>                                                                       
+            </div>
+        </div>
+    </div>
 
     <header>
         <h1>Manage Schedule</h1>
@@ -141,5 +152,59 @@
             document.getElementById('deleteDialog').close();
         }
     </script>
+
+<div class="section">
+    <h2>Customer Questions</h2>
+    <input type="text" placeholder="Search questions">
+    <button>Search</button>
+    <div id="questionList">
+        <!-- Questions and answers will be listed here -->
+    </div>
+    <!-- <h3>Reply to Question</h3>
+    <textarea placeholder="Type your reply"></textarea>
+    <button>Send Reply</button> -->
+</div>
+
+
+<!-- <div class="section col-md-3 mb-3">
+    <h2>Station Schedules</h2>
+    <select class="form-select" id="station" name="station">
+        <option value="" selected>Select Station</option>
+        {% for station in stations %}
+            <option value="{{ station.sid }}">{{ station.name }}</option>
+        {% endfor %}
+    </select>
+    <a href="{% url 'railway:schedule_list' %}" class="btn btn-primary">Get Schedules</a>
+</div> -->
+
+<div class="section col-md-3 mb-3">
+    <h2>Station Schedules</h2>
+    <form method="GET" action="{% url 'railway:schedule_list' %}">
+        <!-- Dropdown to select a station -->
+        <select class="form-select" id="station" name="station_id">
+            <option value="" selected>Select Station</option>
+            {% for station in stations %}
+                <option value="{{ station.sid }}">
+                    {{ station.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <!-- Button to submit the form -->
+        <button type="submit" class="btn btn-primary mt-2">Get Schedules</button>
+    </form>
+</div>
+
+
+<div class="section">
+    <h2>Reservations by Transit Line</h2>
+    <input type="text" placeholder="Transit Line">
+    <input type="date">
+    <button>Search Reservations</button>
+    <div id="reservationList">
+        <!-- Reservation list will be displayed here -->
+    </div>
+</div>
+</div>
 </body>
 </html>
+
