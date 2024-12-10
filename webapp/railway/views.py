@@ -400,6 +400,58 @@ def railway_admin(request):
     return render(request, "railway/admin_account.html", {})
 
 
+def customer_list(request):
+    if not request.session.get('is_logged_in') or request.session.get('user_type') != 'rep':
+        return redirect('railway:index')
+    transit_line = request.GET.get('transit_line_name', None)
+    date = request.GET.get('date', None)
+    params = []
+
+    query = """
+            SELECT C.cid, C.first_name, C.last_name, T.transit_line_name, Sd.name AS Departure , Sa.name AS Arrival, R.date from Reservation R
+            INNER JOIN Customer C
+            ON R.pid = C.cid
+            INNER JOIN Station Sd
+            ON Sd.sid = R.dsid
+            INNER JOIN Station Sa
+            ON Sa.sid = R.dsid
+            INNER JOIN TrainSchedule T
+            ON T.schedule_id = R.schedule_id
+            WHERE 1=1
+        """
+    if transit_line:
+        query += f" AND T.transit_line_name = %s"
+        params.append(transit_line)
+    
+    if date:
+        query += f" AND DATE(R.date) = %s"
+        params.append(date)
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, params)
+        customers = cursor.fetchall()
+
+    customer_data = [
+        {
+            'customer_id': row[0],
+            'first_name': row[1],
+            'last_name': row[2],
+            'transit_line_name': row[3],
+            'departure_station': row[4],
+            'arrival_station': row[5],
+            'date': row[6]
+        }
+        for row in customers
+    ]
+
+    return render(request, 'railway/customer_list.html', {
+        'customers': customer_data,
+        'selected_transit': transit_line,
+        'selected_date': date
+    })
+
+
+
 def rep(request):
     if not request.session.get('is_logged_in') or request.session.get('user_type') != 'rep':
         return redirect('railway:index')
@@ -468,9 +520,16 @@ def rep(request):
         """)
         schedule_count = cursor.fetchone()[0]  # Extract the count
 
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) FROM Reservation
+        """)
+        Reservation_count = cursor.fetchone()[0]  # Extract the count
+
     return render(request, "railway/rep_account.html", {
         'schedules': schedules,
         'schedule_count': schedule_count,  
+        'Reservation_count': Reservation_count,
         'stations': stations,
         'message': message,
     })
@@ -561,8 +620,4 @@ def index(request):
             context['message'] = "Successfully logged out."
 
     return render(request, "railway/index.html", context)
-
-
-
-
 

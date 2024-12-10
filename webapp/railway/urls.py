@@ -22,6 +22,6 @@ urlpatterns = [
     path('unanswered/', views.unanswered_questions, name='unanswered_questions'),
     path('submit_answer/', views.submit_answer, name='submit_answer'),
     path('schedule_list/', views.schedule_list, name='schedule_list'),
-
+    path('customer_list/', views.customer_list, name='customer_list'),
 ]
 urlpatterns += staticfiles_urlpatterns()
