@@ -3,23 +3,10 @@
 <html>
 <head>
     <title>Top 5 Most Active Transit Lines</title>
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
 </head>
 <body>
 <div class="container mt-4">
     <h2>Top 5 Most Active Transit Lines</h2>
-
-    <form method="get" action="">
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <div class="input-group">
-                    <input type="month" class="form-control" name="month" required>
-                    <button type="submit" class="btn btn-primary">Search</button>
-                </div>
-            </div>
-        </div>
-    </form>
-
     {% if selected_month %}
         <p>Selected Month: {{ selected_month }}</p>
     {% endif %}
@@ -48,6 +35,8 @@
             <p>Please select a month to view the top 5 lines.</p>
         {% endif %}
     {% endif %}
+
+    <a href="{% url 'railway:railway_admin' %}" class="btn btn-secondary mt-3">Return</a>
 </div>
 </body>
 </html>

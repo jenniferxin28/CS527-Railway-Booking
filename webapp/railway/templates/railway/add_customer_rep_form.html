@@ -1,0 +1,16 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Success</title>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="alert alert-success" role="alert">
+        Successfully added the new customer representative!
+    </div>
+    <a href="{% url 'railway:railway_admin' %}" class="btn btn-primary">Return</a>
+</div>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
