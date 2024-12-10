@@ -526,10 +526,16 @@ def rep(request):
         """)
         Reservation_count = cursor.fetchone()[0]  # Extract the count
 
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT COUNT(*) FROM faqs WHERE answer IS NULL ORDER BY id ASC")
+        question_count = cursor.fetchone()[0]
+
     return render(request, "railway/rep_account.html", {
         'schedules': schedules,
         'schedule_count': schedule_count,  
         'Reservation_count': Reservation_count,
+        'question_count': question_count,
         'stations': stations,
         'message': message,
     })

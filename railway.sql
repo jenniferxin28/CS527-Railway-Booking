@@ -67,7 +67,7 @@ CREATE TABLE Stops (
     stop_order INT,
     stop_time_arrival DATETIME,
     stop_time_departure DATETIME,
-    FOREIGN KEY (schedule_id) REFERENCES TrainSchedule(schedule_id),
+    FOREIGN KEY (schedule_id) REFERENCES TrainSchedule(schedule_id) ON DELETE CASCADE;,
     FOREIGN KEY (sid) REFERENCES Station(sid)
 );
 
@@ -84,7 +84,7 @@ CREATE TABLE Reservation (
     seniors INT DEFAULT 0,
     disabled INT DEFAULT 0,
     FOREIGN KEY (pid) REFERENCES Customer(cid),
-    FOREIGN KEY (schedule_id) REFERENCES TrainSchedule(schedule_id),
+    FOREIGN KEY (schedule_id) REFERENCES TrainSchedule(schedule_id) ON DELETE CASCADE;,
     FOREIGN KEY (dsid) REFERENCES Station(sid),
     FOREIGN KEY (asid) REFERENCES Station(sid)
 );
