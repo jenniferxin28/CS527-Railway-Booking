@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Railway Booking - Home</title>
+    {% include 'railway/components/header.html' with selected="" %}     
+
+</head>
+<body>
+    {% include 'railway/components/ui_navbar.html' with selected="" %}
+
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Reservations</h1>
+
+
+    <!-- train results -->
+
+    <table border="1" cellspacing="0" cellpadding="5">
+        <thead>
+            <tr>
+                <th>Customer Name</th>
+                <th>Departure Station</th>
+                <th>Destination Station</th>
+                <th>Transit Line</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.first_name|add:" "|add:customer.last_name }}</td>
+                    <td>{{ customer.departure_station }}</td>
+                    <td>{{ customer.arrival_station }}</td>
+                    <td>{{ customer.transit_line_name }}</td>
+                    <td>{{ customer.date }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">No schedules found for this station.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
