@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.db import connection
+from django.contrib import messages
+from django.utils.dateparse import parse_datetime
 # Create your views here.
 # Remember to write a view for every single page, then link the function in railway/urls.py to display the view
 
@@ -328,6 +330,53 @@ def schedule_list(request):
     # Fetch schedules from the database
 
     params = []
+
+    if request.method == 'POST'and 'create_schedule' in request.POST:
+        transit_id = request.POST.get('transit')
+        origin_sid = request.POST.get('origin')
+        dest_sid = request.POST.get('dest')
+        departure_time = parse_datetime(request.POST.get('departure_time'))
+        arrival_time = parse_datetime(request.POST.get('arrival_time'))
+        fare = request.POST.get('fare')
+
+        if not transit_id or not origin_sid or not dest_sid or not departure_time or not arrival_time or not fare:
+            messages.error(request, "All fields are required.")
+            return redirect('railway:schedule_list')  # redirect back to the schedule page or form
+
+        travel_time = arrival_time - departure_time
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT transit_line_name FROM Train WHERE tid = %s", [transit_id])
+            transit_line_name = cursor.fetchone()[0]
+
+            # Get origin station name
+        # with connection.cursor() as cursor:
+        #     cursor.execute("SELECT name FROM Station WHERE sid = %s", [origin_sid])
+        #     origin_name = cursor.fetchone()[0]
+
+        # # Get destination station name
+        # with connection.cursor() as cursor:
+        #     cursor.execute("SELECT name FROM Station WHERE sid = %s", [dest_sid])
+        #     dest_name = cursor.fetchone()[0]
+
+
+            # Raw SQL query to insert a new train schedule
+        query_insert = """
+            INSERT INTO TrainSchedule (transit_line_name, tid, origin, dest, departure_time, arrival_time, travel_time, fare)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query_insert, [
+                transit_line_name,  # transit_line_name, assuming you pass the name directly here, adjust as needed
+                transit_id,  # tid
+                origin_sid,   # origin
+                dest_sid,     # dest
+                departure_time,  # departure_time
+                arrival_time,    # arrival_time
+                travel_time,     # travel_time
+                fare  # fare
+            ])
+
     
     query = """
             SELECT TS.schedule_id, TS.transit_line_name, TS.departure_time, 
@@ -389,8 +438,36 @@ def schedule_list(request):
         for row in schedules
     ]
 
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT DISTINCT tid, transit_line_name 
+            FROM Train
+        """)
+        trains = [
+            {
+                'tid': row[0],
+                'transit_line_name': row[1]
+            }
+            for row in cursor.fetchall()
+        ]
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT DISTINCT sid, name 
+            FROM Station
+        """)
+        stations = [
+            {
+                'sid': row[0],
+                'name': row[1]
+            }
+            for row in cursor.fetchall()
+        ]
+
     return render(request, 'railway/schedule_list.html', {
         'schedules': schedule_data,
+        'trains': trains,
+        'stations': stations,
         'selected_station_id': station_id,
     })
 

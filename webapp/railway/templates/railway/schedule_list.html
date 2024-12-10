@@ -8,13 +8,26 @@
 <body>
     {% include 'railway/components/ui_navbar.html' with selected="" %}
 
+    <script>
+        
+        function open_dialog(){
+            const dialog = document.getElementById('createDialog');
+            dialog.showModal();
+        }
+
+        function closeDialog() {
+            document.getElementById('createDialog').close();
+        }
+    </script>
+
     <div class="container mt-4">
-        <h1 class="text-center mb-4">Search for Trains</h1>
+        <h1 class="text-center mb-4">Train Schedules</h1>
 
        
 
         <!-- sort button -->
-        <div class="col-12 d-flex justify-content-right">
+        <div class="col-12 d-flex justify-content-between align-items-center my-4">
+            <!-- Form Section on the Left -->
             <form method="get" action="">
                 <input type="hidden" name="station_id" value="{{ request.GET.station_id }}">
                 <input type="hidden" name="origin" value="{{ request.GET.origin }}">
@@ -22,25 +35,73 @@
                 <input type="hidden" name="date" value="{{ request.GET.date }}">
                 <label for="sort" class="me-2">Sort By:</label>
                 <select id="sort" name="sort" class="form-select d-inline-block w-auto">
-                    <!-- Set 'selected' if the sort value matches -->
                     <option value="departure_time" {% if request.GET.sort == "departure_time" %}selected{% endif %}>Departure Time</option>
                     <option value="arrival_time" {% if request.GET.sort == "arrival_time" %}selected{% endif %}>Arrival Time</option>
                     <option value="fare" {% if request.GET.sort == "fare" %}selected{% endif %}>Fare</option>
                 </select>
                 <button type="submit" class="btn btn-secondary ms-2">Sort</button>
             </form>
+            
+            <!-- Add Schedules Button on the Right -->
+            <button class="btn btn-primary ms-2" onclick="open_dialog()">Add Schedules</button>
         </div>
-        <div class="my-4"></div>
+        
+
+        <dialog id="createDialog">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="create_schedule" value="true">
+                <!-- <input type="hidden" name="schedule_id" id="updateScheduleId"> -->
+
+                <label>Transit Line:</label>
+                <select id="transit" name = "transit" class="form-select d-inline-block w-auto">
+                    {% for train in trains %}
+                        <option value="{{ train.tid }}">
+                            {{ train.transit_line_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label>Origin:</label>
+                <select id="origin" name = "origin" class="form-select d-inline-block w-auto">
+                    {% for station in stations %}
+                        <option value="{{ station.sid }}">
+                            {{ station.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label>Destination:</label>
+                <select id="dest" name = "dest" class="form-select d-inline-block w-auto">
+                    {% for station in stations %}
+                        <option value="{{ station.sid }}">
+                            {{ station.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label for="DepartureTime">Departure Time:</label>
+                <input type="datetime-local" name="departure_time" id="DepartureTime" class="form-control">
+                
+                <label for="ArrivalTime">Arrival Time:</label>
+                <input type="datetime-local" name="arrival_time" id="ArrivalTime" class="form-control">
+                
+                <label for="Fare">Fare:</label>
+                <input type="number" step="0.01" name="fare" id="Fare" class="form-control">
+                
+                <button type="submit" class="btn btn-success w-100">Confirm Update</button>
+                <button type="button" onclick="closeDialog()" class="btn btn-danger w-100 mt-2">Cancel</button>
+            </form>
+        </dialog>
 
     <!-- train results -->
 
-    <table border="1" cellspacing="0" cellpadding="5">
+    <table class="table table-striped">
         <thead>
             <tr>
-                <th>Origin</th>
-                <th>Destination</th>
-                <th>Schedule ID</th>
                 <th>Transit Line</th>
+                <th>Origin</th>
+                <th>Destination</th>  
                 <th>Departure Time</th>
                 <th>Arrival Time</th>
                 <th>Fare</th>
@@ -49,10 +110,9 @@
         <tbody>
             {% for schedule in schedules %}
                 <tr>
+                    <td>{{ schedule.transit_line_name }}</td>
                     <td>{{ schedule.origin_name }}</td>
                     <td>{{ schedule.dest_name }}</td>
-                    <td>{{ schedule.schedule_id }}</td>
-                    <td>{{ schedule.transit_line_name }}</td>
                     <td>{{ schedule.departure_time }}</td>
                     <td>{{ schedule.arrival_time }}</td>
                     <td>{{ schedule.fare }}</td>
@@ -65,5 +125,12 @@
         </tbody>
     </table>
 
+    <div class="text-center mt-4">
+        <a href="{% url 'railway:rep' %}" class="fw-bold text-primary">Back to Home</a>
+    </div>
+
 </body>
 </html>
+
+
+
