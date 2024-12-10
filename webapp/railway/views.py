@@ -472,15 +472,7 @@ def edit_customer_rep(request, ssn):
                 [first_name, last_name, username, password, ssn]
             )
 
-        return redirect('admin:admin_account')
-
-    return render(request, "railway/edit_customer_rep.html", {
-        'first_name': row[0],
-        'last_name': row[1],
-        'username': row[2],
-        'password': row[3],
-        'ssn': ssn
-    })
+        return redirect('railway:admin_account')
 
 # Delete customer rep
 def delete_customer_rep(request, ssn):
@@ -495,14 +487,7 @@ def delete_customer_rep(request, ssn):
         # Delete record
         with connection.cursor() as cursor:
             cursor.execute("DELETE FROM Employee WHERE SSN=%s AND level='rep'", [ssn])
-        return redirect('admin:admin_account')
-
-    return render(request, "railway/delete_customer_rep.html", {
-        'first_name': row[0],
-        'last_name': row[1],
-        'ssn': ssn
-    })
-
+        return redirect('railway:admin_account')
 
 # sales report 
 def sales_report(request):

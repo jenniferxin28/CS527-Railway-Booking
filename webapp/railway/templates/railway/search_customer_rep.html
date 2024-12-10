@@ -7,7 +7,6 @@
 </head>
 <body>
 <div class="container mt-4">
-    <h2>Search Results for "{{ query }}"</h2>
     {% if reps %}
         <table class="table table-striped">
             <thead>
@@ -35,5 +34,41 @@
         <p>No representatives found with that name.</p>
     {% endif %}
 </div>
+<div class="button-container">
+    <div class="col-md-2 mb-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">Delete Representative</button>
+    </div> 
+</div>
+
+<p>Enter New Information: </p>
+<form method="post">
+    <div class="mb-3">
+        <label for="ssn" class="form-label">SSN</label>
+        <input type="number" class="form-control" id="ssn" name="ssn" required>
+    </div>
+    <div class="mb-3">
+        <label for="first_name" class="form-label">First Name</label>
+        <input type="text" class="form-control" id="first_name" name="first_name" required>
+    </div>
+    <div class="mb-3">
+        <label for="last_name" class="form-label">Last Name</label>
+        <input type="text" class="form-control" id="last_name" name="last_name" required>
+    </div>
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="text" class="form-control" id="password" name="password" required>
+    </div>
+</form>
+
+<div class="button-container">
+    <div class="col-md-2 mb-3 d-flex align-items-end">
+        <a href="{% url 'railway:edit_customer_rep' %}" class="btn btn-success w-100">Edit Representative Info</a>
+    </div> 
+</div>
+
 </body>
 </html>
