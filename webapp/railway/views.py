@@ -536,7 +536,7 @@ def edit_customer_rep(request):
 
 # Delete customer rep
 def delete_customer_rep(request):
-    ssn = request.POST.get('SSN').strip()
+    ssn = request.POST.get('SSN')
 
     with connection.cursor() as cursor:
         cursor.execute("DELETE FROM Employee WHERE SSN=%s AND level='rep'", [ssn])
