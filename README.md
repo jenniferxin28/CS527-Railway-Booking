@@ -1,8 +1,8 @@
-# CS527-Railway-Booking
-## Instructions for TA - Project final submission
+# Railway-Booking
+## Final Installation Instructions
 1. Make sure Python is installed and install the required libraries by using `pip install -r requirements.txt`. You can also create a python virtual environment for this.
 2. Navigate to `webapp\webapp\settings.py` and change the credentials of the database to match your own.
-3. Open up the `4schema.sql` and run it in mySQL workbench.
+3. Open up the `railway.sql` and run it in mySQL workbench.
 4. Navigate into the folder containing `manage.py` and run `python manage.py migrate`
 5. Run `python manage.py runserver` to start hosting the web application.
 6. The site will be hosted locally and you will be able to access the site at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
